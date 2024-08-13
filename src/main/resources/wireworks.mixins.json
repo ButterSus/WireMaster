@@ -4,11 +4,7 @@
   "package": "com.buttersus.wireworks.mixin",
   "compatibilityLevel": "JAVA_17",
   "mixins": [],
-  "client": [
-    "CameraMixin",
-    "GameRendererMixin",
-    "MouseMixin"
-  ],
+  "client": [],
   "server": [],
   "injectors": {
     "defaultRequire": 1
