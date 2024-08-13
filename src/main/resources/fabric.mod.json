@@ -1,0 +1,40 @@
+{
+  "schemaVersion": 1,
+  "id": "wireworks",
+  "version": "${version}",
+
+  "name": "Wire Works",
+  "description": "Wiring tools for redstoners",
+  "authors": [
+    "ButterSus"
+  ],
+  "contact": { },
+
+  "license": "MIT",
+  "icon": "assets/wireworks/icon.png",
+
+  "environment": "*",
+  "entrypoints": {
+    "client": [
+      {
+        "adapter": "kotlin",
+        "value": "com.buttersus.wireworks.client.WireWorksClientMod"
+      }
+    ]
+  },
+
+  "mixins": [
+    "wireworks.mixins.json"
+  ],
+
+  "depends": {
+    "fabricloader": ">=0.14.19",
+    "fabric-api": "*",
+    "minecraft": "~1.19.4",
+    "java": ">=17",
+    "fabric-language-kotlin": ">=1.9.2+kotlin.1.8.10",
+    "amecsapi": ">=1.5.3+mc1.19.4"
+  },
+
+  "suggests": { }
+}
