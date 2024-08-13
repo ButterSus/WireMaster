@@ -1,5 +1,6 @@
 package com.buttersus.wireworks.client.keybinding
 
+import com.buttersus.wireworks.WireWorks
 import de.siphalor.amecs.api.AmecsKeyBinding
 import de.siphalor.amecs.api.KeyModifiers
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents
@@ -10,10 +11,10 @@ import net.minecraft.client.util.InputUtil
 object Keybindings {
     val TOGGLE_WIRE_DESIGNER by lazy {
         AmecsKeyBinding(
-            "key.wireworks.toggle_wire_designer",
+            "key.${WireWorks.MOD_ID}.toggle_wire_designer",
             InputUtil.Type.KEYSYM,
             InputUtil.UNKNOWN_KEY.code,
-            "category.wireworks.keybindings",
+            "category.${WireWorks.MOD_ID}.keybindings",
             KeyModifiers(),
         )
     }
