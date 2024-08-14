@@ -1,4 +1,4 @@
-package com.buttersus.wireworks.extensions
+package com.buttersus.wiremaster.extensions
 
 @Suppress("unused")
 fun Boolean.toInt() =

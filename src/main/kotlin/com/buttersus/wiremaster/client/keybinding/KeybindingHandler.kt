@@ -1,4 +1,4 @@
-package com.buttersus.wireworks.client.keybinding
+package com.buttersus.wiremaster.client.keybinding
 
 import net.fabricmc.api.EnvType
 import net.fabricmc.api.Environment

@@ -1,4 +1,4 @@
-rootProject.name = "wire-works"
+rootProject.name = "wire-master"
 pluginManagement {
     repositories {
         maven("https://maven.fabricmc.net/") {
