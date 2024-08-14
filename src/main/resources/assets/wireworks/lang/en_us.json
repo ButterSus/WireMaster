@@ -1,4 +1,8 @@
 {
   "category.wireworks.keybindings": "Wire Works",
-  "key.wireworks.toggle_wire_designer": "Toggle wire designer"
+  "key.wireworks.toggle_wire_designer": "Toggle wire designer",
+  "config.wireworks.title": "Wire Works configuration",
+  "config.wireworks.general": "General",
+  "config.wireworks.experimental_orthographic": "Experimental orthographic view",
+  "config.wireworks.experimental_orthographic.tooltip": "Enable experimental orthographic projection (not recommended)"
 }

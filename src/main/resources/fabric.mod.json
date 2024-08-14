@@ -20,6 +20,9 @@
         "adapter": "kotlin",
         "value": "com.buttersus.wireworks.client.WireWorksClientMod"
       }
+    ],
+    "modmenu": [
+      "com.buttersus.wireworks.integration.ModMenuIntegration"
     ]
   },
 
@@ -33,8 +36,11 @@
     "minecraft": "~1.19.4",
     "java": ">=17",
     "fabric-language-kotlin": ">=1.9.2+kotlin.1.8.10",
-    "amecsapi": ">=1.5.3+mc1.19.4"
+    "amecsapi": ">=1.5.3+mc1.19.4",
+    "cloth-config": ">=10.1.117"
   },
 
-  "suggests": { }
+  "recommends": {
+    "modmenu": ">=6.3.1"
+  }
 }
