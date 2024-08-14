@@ -1,8 +1,0 @@
-{
-  "category.wireworks.keybindings": "Wire Works",
-  "key.wireworks.toggle_wire_designer": "Переключить редактор проводов",
-  "config.wireworks.title": "Настройки Wire Works",
-  "config.wireworks.general": "Основное",
-  "config.wireworks.experimental_orthographic": "Включить ортографическое отображение",
-  "config.wireworks.experimental_orthographic.tooltip": "Включить экспериментальное ортографическую перспективу (не рекомендуется)"
-}

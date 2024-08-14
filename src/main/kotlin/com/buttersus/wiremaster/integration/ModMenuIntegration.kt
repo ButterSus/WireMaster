@@ -1,6 +1,6 @@
-package com.buttersus.wireworks.integration
+package com.buttersus.wiremaster.integration
 
-import com.buttersus.wireworks.screen.ModConfigScreen
+import com.buttersus.wiremaster.screen.ModConfigScreen
 import com.terraformersmc.modmenu.api.ConfigScreenFactory
 import com.terraformersmc.modmenu.api.ModMenuApi
 import net.fabricmc.api.EnvType

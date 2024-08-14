@@ -22,7 +22,7 @@
       }
     ],
     "modmenu": [
-      "com.buttersus.wireworks.integration.ModMenuIntegration"
+      "com.buttersus.wiremaster.integration.ModMenuIntegration"
     ]
   },
 
