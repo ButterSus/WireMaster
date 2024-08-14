@@ -1,30 +1,30 @@
 {
   "schemaVersion": 1,
-  "id": "wireworks",
+  "id": "wire-master",
   "version": "${version}",
 
-  "name": "Wire Works",
-  "description": "Wiring tools for redstoners",
+  "name": "Wire Master",
+  "description": "Wiring tools for computational redstone technicians",
   "authors": [
     "ButterSus"
   ],
   "contact": { },
 
   "license": "MIT",
-  "icon": "assets/wireworks/icon.png",
+  "icon": "assets/wire-master/icon.png",
 
   "environment": "*",
   "entrypoints": {
     "client": [
       {
         "adapter": "kotlin",
-        "value": "com.buttersus.wireworks.client.WireWorksClientMod"
+        "value": "com.buttersus.wiremaster.client.WireMasterClientMod"
       }
     ]
   },
 
   "mixins": [
-    "wireworks.mixins.json"
+    "wire-master.mixins.json"
   ],
 
   "depends": {
