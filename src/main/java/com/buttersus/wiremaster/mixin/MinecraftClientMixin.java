@@ -1,7 +1,7 @@
 package com.buttersus.wiremaster.mixin;
 
 import com.buttersus.wiremaster.client.camera.WireDesigner;
-import com.buttersus.wiremaster.client.keybinding.Keybindings;
+import com.buttersus.wiremaster.client.input.KeyBindings;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.world.ClientWorld;
@@ -21,11 +21,6 @@ public abstract class MinecraftClientMixin {
     private void onBeforeDisconnect(Screen screen, CallbackInfo ci) {
         MinecraftClient mc = (MinecraftClient) (Object) this;
         if (mc.world != null) WireDesigner.INSTANCE.onWorldUnload();
-    }
-
-    @Inject(at = @At("TAIL"), method = "handleInputEvents()V")
-    private void onHandleInputEvents(CallbackInfo ci) {
-        Keybindings.INSTANCE.onHandleKeybindings();
     }
 }
 

@@ -22,7 +22,7 @@ public abstract class CameraMixin {
     private void onUpdate(BlockView area, Entity focusedEntity, boolean thirdPerson, boolean inverseView, float tickDelta, CallbackInfo info) {
         WireDesigner wireDesigner = WireDesigner.INSTANCE;
         if (wireDesigner.isActive()) {
-            setRotation(wireDesigner.getYRot(), wireDesigner.getXRot());
+            setRotation((float) wireDesigner.getYRot(), (float) wireDesigner.getXRot());
             setPos(wireDesigner.getX(), wireDesigner.getY(), wireDesigner.getZ());
         }
     }

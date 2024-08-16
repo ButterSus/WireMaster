@@ -1,3 +1,5 @@
+@file:Suppress("LocalVariableName")
+
 rootProject.name = "wire-master"
 pluginManagement {
     repositories {

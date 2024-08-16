@@ -1,4 +1,7 @@
 {
   "category.wire-master.keybindings": "Wire Master",
-  "key.wire-master.toggle_wire_designer": "Переключить редактор проводов"
+  "key.wire-master.toggle_wire_designer": "Переключить редактор проводов",
+  "key.wire-master.toggle_cursor_mode": "Переключить режим курсора",
+  "key.wire-master.scroll_down": "Прокрутить вниз",
+  "key.wire-master.scroll_up": "Прокрутить вверх"
 }

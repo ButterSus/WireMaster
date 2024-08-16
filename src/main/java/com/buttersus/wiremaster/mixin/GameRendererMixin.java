@@ -13,7 +13,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 public abstract class GameRendererMixin {
     @Inject(at = @At("HEAD"), method = "render(FJZ)V")
     private void onRender(float tickDelta, long startTime, boolean tick, CallbackInfo ci) {
-        WireDesigner.INSTANCE.onRenderTickStart(tickDelta);
+        WireDesigner.INSTANCE.onRenderTickStart();
     }
 
     @Inject(at = @At("HEAD"), method = "updateTargetedEntity(F)V")

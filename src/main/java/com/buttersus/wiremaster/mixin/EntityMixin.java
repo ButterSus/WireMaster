@@ -26,7 +26,7 @@ public abstract class EntityMixin {
     private void onGetRotationVec(float p_20253_, CallbackInfoReturnable<Vec3d> cir) {
         WireDesigner wireDesigner = WireDesigner.INSTANCE;
         if (wireDesigner.shouldOverrideCameraEntityPosition((Entity) (Object) this)) {
-            cir.setReturnValue(this.getRotationVector(wireDesigner.getXRot(), wireDesigner.getYRot()));
+            cir.setReturnValue(this.getRotationVector((float) wireDesigner.getXRot(), (float) wireDesigner.getYRot()));
         }
     }
 }

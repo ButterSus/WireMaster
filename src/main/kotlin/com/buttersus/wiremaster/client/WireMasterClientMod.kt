@@ -1,15 +1,15 @@
 package com.buttersus.wiremaster.client
 
 import com.buttersus.wiremaster.client.camera.WireDesigner
-import com.buttersus.wiremaster.client.keybinding.Keybindings
+import com.buttersus.wiremaster.client.input.KeyBindings
 import net.fabricmc.api.ClientModInitializer
-import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents
+import net.fabricmc.api.EnvType
+import net.fabricmc.api.Environment
 
+@Environment(EnvType.CLIENT)
 object WireMasterClientMod : ClientModInitializer {
     override fun onInitializeClient() {
-        Keybindings.init()
-        ClientTickEvents.START_CLIENT_TICK.register {
-            WireDesigner.onClientTickStart()
-        }
+        KeyBindings.init()
+        WireDesigner.init()
     }
 }
