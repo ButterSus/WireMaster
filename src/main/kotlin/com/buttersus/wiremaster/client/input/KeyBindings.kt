@@ -1,6 +1,7 @@
 package com.buttersus.wiremaster.client.input
 
 import com.buttersus.wiremaster.WireMaster
+import de.siphalor.amecs.api.AmecsKeyBinding
 import de.siphalor.amecs.api.KeyBindingUtils
 import net.fabricmc.api.EnvType
 import net.fabricmc.api.Environment
@@ -8,14 +9,14 @@ import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper
 
 @Environment(EnvType.CLIENT)
 object KeyBindings {
-    private val TOGGLE_WIRE_DESIGNER = ToggleWireDesignerKeyBinding()
-    private val TOGGLE_CURSOR_MODE = ToggleCursorModeKeyBinding()
-    private val SCROLL_DOWN = ScrollKeyBinding(
+    val TOGGLE_WIRE_DESIGNER: AmecsKeyBinding = ToggleWireDesignerKeyBinding()
+    val TOGGLE_CURSOR_MODE: AmecsKeyBinding = ToggleCursorModeKeyBinding()
+    val SCROLL_DOWN: AmecsKeyBinding = ScrollKeyBinding(
         "key.${WireMaster.MOD_ID}.scroll_down",
         KeyBindingUtils.MOUSE_SCROLL_DOWN,
         "category.${WireMaster.MOD_ID}.keybindings"
     )
-    private val SCROLL_UP = ScrollKeyBinding(
+    val SCROLL_UP: AmecsKeyBinding = ScrollKeyBinding(
         "key.${WireMaster.MOD_ID}.scroll_up",
         KeyBindingUtils.MOUSE_SCROLL_UP,
         "category.${WireMaster.MOD_ID}.keybindings"

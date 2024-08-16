@@ -18,6 +18,7 @@ internal class ToggleCursorModeKeyBinding : AmecsKeyBinding(
     KeyModifiers()
 ), PriorityKeyBinding {
     override fun onPressedPriority(): Boolean {
+        if (!WireDesigner.canToggleCursorMode()) return false
         return WireDesigner.toggleCursorMode()
     }
 }

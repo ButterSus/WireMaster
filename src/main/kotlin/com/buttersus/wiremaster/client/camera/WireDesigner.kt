@@ -1,7 +1,9 @@
 package com.buttersus.wiremaster.client.camera
 
 import com.buttersus.wiremaster.WireMaster
-import com.buttersus.wiremaster.extensions.*
+import com.buttersus.wiremaster.extensions.clamp
+import com.buttersus.wiremaster.extensions.toDouble
+import com.buttersus.wiremaster.extensions.toRadians
 import net.fabricmc.api.EnvType
 import net.fabricmc.api.Environment
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents
@@ -27,6 +29,7 @@ object WireDesigner {
     private val up = Vector3d(0.0, 1.0, 0.0)
     private val left = Vector3d(1.0, 0.0, 0.0)
     private var active = false
+    private var wasInCursorMode = false
     private var cursorMode = false
     private var oldPerspective: Perspective? = null
     private var oldInput: Input? = null
@@ -49,16 +52,17 @@ object WireDesigner {
         }
     }
 
-    // Enable / disable methods
-    fun toggle() = when (active) {
-        false -> enable()
-        true -> disable()
+    // Wire Designer
+    fun toggleWireDesigner(): Boolean = when (active) {
+        false -> enableWireDesigner()
+        true -> disableWireDesigner()
     }
 
-    fun disable() {
-        if (!active) return
-        val player = mc.player ?: return
+    private fun disableWireDesigner(): Boolean {
+        if (!active) return false
+        val player = mc.player ?: return false
         active = false
+        if (cursorMode) disableCursorMode()
 
         val cameraType = mc.options.perspective
         mc.options.perspective = oldPerspective
@@ -66,12 +70,13 @@ object WireDesigner {
         if (cameraType.isFirstPerson != mc.options.perspective.isFirstPerson)
             mc.gameRenderer.onCameraEntitySet(if (mc.options.perspective.isFirstPerson) mc.getCameraEntity() else null)
         oldPerspective = null
+        return true
     }
 
-    fun enable() {
-        if (active) return
-        val player = mc.player ?: return
-        val entity = mc.getCameraEntity() ?: return
+    private fun enableWireDesigner(): Boolean {
+        if (active) return false
+        val player = mc.player ?: return false
+        val entity = mc.getCameraEntity() ?: return false
         active = true
 
         // Store old values
@@ -104,21 +109,44 @@ object WireDesigner {
         leftVelocity = 0.0
         upVelocity = 0.0
         lastTime = 0L
+        return true
     }
 
     // Cursor mode
-    fun toggleCursorMode() : Boolean {
-        when (cursorMode) {
-            false -> {
-                cursorMode = true
-                GLFW.glfwSetInputMode(mc.window.handle, GLFW.GLFW_CURSOR, GLFW.GLFW_CURSOR_NORMAL)
-            }
-            true -> {
-                cursorMode = false
-                GLFW.glfwSetInputMode(mc.window.handle, GLFW.GLFW_CURSOR, GLFW.GLFW_CURSOR_DISABLED)
-            }
+    fun toggleCursorMode(): Boolean {
+        if (mc.window == null) return false
+        return when (cursorMode) {
+            false -> enableCursorMode()
+            true -> disableCursorMode()
         }
+    }
+
+    private fun enableCursorMode(): Boolean {
+        if (mc.window == null) return false
+        cursorMode = true
+        GLFW.glfwSetInputMode(mc.window.handle, GLFW.GLFW_CURSOR, GLFW.GLFW_CURSOR_NORMAL)
         return true
+    }
+
+    private fun disableCursorMode(): Boolean {
+        if (mc.window == null) return false
+        cursorMode = false
+        GLFW.glfwSetInputMode(mc.window.handle, GLFW.GLFW_CURSOR, GLFW.GLFW_CURSOR_DISABLED)
+        return true
+    }
+
+    fun onScreenOpen() {
+        if (cursorMode) {
+            wasInCursorMode = true
+            disableCursorMode()
+        }
+    }
+
+    fun onScreenClose() {
+        if (wasInCursorMode) {
+            wasInCursorMode = false
+            enableCursorMode()
+        }
     }
 
     // Math
@@ -147,11 +175,9 @@ object WireDesigner {
         var velocity = _velocity
         // When moving opposite direction, velocity resets
         if (impulse != 0.0) {
-            if (impulse > 0 && velocity < 0) {
-                velocity = 0.0
-            }
-            if (impulse < 0 && velocity > 0) {
-                velocity = 0.0
+            if (impulse > 0 && velocity < 0 || impulse < 0 && velocity > 0) {
+                if (WireMaster.COUNTER_STRAFING) velocity = 0.0
+                else velocity *= slowdown.pow(2)
             }
             velocity += acceleration * impulse * frameTime
         } else {
@@ -163,14 +189,21 @@ object WireDesigner {
     // Events && Mixin Methods
     fun onPlayerTurn(player: ClientPlayerEntity, yRot: Double, xRot: Double) {
         if (active) {
-            pitch += xRot.toFloat() * 0.15f
-            yaw += yRot.toFloat() * 0.15f
-            pitch = MathHelper.clamp(pitch, -90.0, 90.0)  // Player can't turn 180 degrees vertically
+            if (!cursorMode) {
+                pitch += xRot.toFloat() * 0.15f
+                yaw += yRot.toFloat() * 0.15f
+                pitch = MathHelper.clamp(pitch, -90.0, 90.0)  // Player can't turn 180 degrees vertically
+            }
             calculateVectors()
         } else player.changeLookDirection(yRot, xRot)
     }
 
-    fun onWorldUnload() = disable()
+    fun onWorldUnload() {
+        disableWireDesigner()
+        cursorMode = false
+        wasInCursorMode = false
+    }
+
     fun onRenderCrosshairIsFirstPerson(cameraType: Perspective) = active || cameraType.isFirstPerson
     fun onRenderItemInHandIsFirstPerson(cameraType: Perspective) = active || cameraType.isFirstPerson
     fun onBeforeGameRendererPick() {
@@ -187,9 +220,7 @@ object WireDesigner {
     fun onClientTickStart() {
         if (!active) return
         val togglePerspectiveKey = mc.options.togglePerspectiveKey
-        while (togglePerspectiveKey.wasPressed()) {
-            continue
-        }
+        while (togglePerspectiveKey.wasPressed()) continue
         togglePerspectiveKey.isPressed = false
         oldInput?.tick(false, 0f)
     }
@@ -222,11 +253,13 @@ object WireDesigner {
         z += velocity.z * frameTime
     }
 
+    @Suppress("UNUSED_PARAMETER")
     fun onMouseScroll(mouseX: Double, mouseY: Double, scrollY: Double): Boolean {
         val scrollAmount = scrollY * mc.options.mouseSensitivity.value
         println("Scroll amount: $scrollAmount")
         return true
     }
+
     // Getters
     fun isActive() = active
     fun getXRot() = pitch
@@ -237,4 +270,9 @@ object WireDesigner {
 
     // Other methods
     fun canToggle() = mc.currentScreen == null && mc.world != null && mc.player != null  // Not in a GUI
+    fun canToggleCursorMode() =
+        active && mc.currentScreen == null && mc.world != null && mc.player != null  // Active & not in a GUI
+
+    fun canScroll() =
+        active && mc.currentScreen == null && mc.world != null && mc.player != null  // Active & not in a GUI
 }

@@ -11,6 +11,7 @@
     "GameOptionsMixin",
     "GameRendererMixin",
     "InGameHudMixin",
+    "KeyboardMixin",
     "MinecraftClientMixin",
     "MouseMixin",
     "WorldRendererMixin"

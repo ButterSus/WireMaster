@@ -24,6 +24,7 @@ internal class ScrollKeyBinding(
     private fun getMouseY(): Double = mc.mouse.y * mc.window.scaledHeight / mc.window.height
 
     override fun onPressedPriority(): Boolean {
+        if (!WireDesigner.canScroll()) return false
         return WireDesigner.onMouseScroll(
             getMouseX(), getMouseY(), when (code) {
                 KeyBindingUtils.MOUSE_SCROLL_UP -> 1.0
