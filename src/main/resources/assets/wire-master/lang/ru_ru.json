@@ -1,8 +1,9 @@
 {
   "category.wire-master.keybindings": "Wire Master",
-  "key.wire-master.toggle_wire_designer": "Переключить wire designer",
+  "key.wire-master.toggle_wire_designer": "Переключить редактор проводов",
   "config.wire-master.title": "Настройки Wire Master",
   "config.wire-master.general": "Основное",
+  "config.wire-master.general.tooltip": "Основные настройки",
   "config.wire-master.experimental_orthographic": "Экспериментальная ортографическое отображение",
   "config.wire-master.experimental_orthographic.tooltip": "Включить экспериментальное ортографическое отображение (не рекомендуется)"
 }
