@@ -243,9 +243,10 @@ object WireDesigner {
         upVelocity = combineMovement(upVelocity, upImpulse, frameTime, WireMaster.ACCELERATION, slowdown)
 
         // Getting radius-vector
-        val velocity = forwards.mul(forwardVelocity)
-            .add(left.mul(leftVelocity))
-            .add(up.mul(upVelocity))
+        val velocity = Vector3d()
+            .add(Vector3d(forwards).mul(forwardVelocity))
+            .add(Vector3d(left).mul(leftVelocity))
+            .add(Vector3d(up).mul(upVelocity))
             .clamp(0.0, WireMaster.MAX_SPEED)
 
         x += velocity.x * frameTime
