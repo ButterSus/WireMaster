@@ -1,4 +1,9 @@
 {
+  "config.wire-master.title": "Wire Master configuration",
+  "config.wire-master.general": "General",
+  "config.wire-master.general.tooltip": "General settings",
+  "config.wire-master.experimental_orthographic": "Experimental orthographic view",
+  "config.wire-master.experimental_orthographic.tooltip": "Enable experimental orthographic projection (not recommended)",
   "category.wire-master.keybindings": "Wire Master",
   "key.wire-master.toggle_wire_designer": "Toggle wire designer",
   "key.wire-master.toggle_cursor_mode": "Toggle cursor mode",

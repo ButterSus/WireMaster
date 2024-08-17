@@ -13,6 +13,7 @@ version = property("mod_version")!!
 repositories {
     maven("https://maven.siphalor.de/")  // Amecs API
     maven("https://maven.terraformersmc.com/")  // Mod Menu
+    maven("https://maven.isxander.dev/releases/")  // Yet Another Config Lib
 }
 
 dependencies {
@@ -23,7 +24,8 @@ dependencies {
     modApi("net.fabricmc.fabric-api:fabric-api:${property("fabric_api_version")}")
     val amecs_api_minecraft_version = property("minecraft_version").toString().split(".").take(2).joinToString(".")
     modApi("de.siphalor:amecsapi-$amecs_api_minecraft_version:${property("amecs_api_version")}")
-    modApi("com.terraformersmc:modmenu:${property("mod_menu_version")}")
+    modImplementation("com.terraformersmc:modmenu:${property("mod_menu_version")}")
+    modApi("dev.isxander:yet-another-config-lib:${property("yet_another_config_lib_version")}")
 }
 
 tasks {

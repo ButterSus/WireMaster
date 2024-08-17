@@ -1,4 +1,9 @@
 {
+  "config.wire-master.title": "Настройки Wire Master",
+  "config.wire-master.general": "Основное",
+  "config.wire-master.general.tooltip": "Основные настройки",
+  "config.wire-master.experimental_orthographic": "Экспериментальная ортографическое отображение",
+  "config.wire-master.experimental_orthographic.tooltip": "Включить экспериментальное ортографическое отображение (не рекомендуется)",
   "category.wire-master.keybindings": "Wire Master",
   "key.wire-master.toggle_wire_designer": "Переключить редактор проводов",
   "key.wire-master.toggle_cursor_mode": "Переключить режим курсора",
