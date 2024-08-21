@@ -1,6 +1,7 @@
 package com.buttersus.wiremaster.client.camera
 
 import com.buttersus.wiremaster.WireMaster
+import com.buttersus.wiremaster.extensions.lookAt
 import com.buttersus.wiremaster.extensions.toDegrees
 import com.buttersus.wiremaster.extensions.toDouble
 import com.buttersus.wiremaster.extensions.toRadians
@@ -95,10 +96,16 @@ object WireDesigner {
         calculateVectors()
 
         val distance = -2.0
-        val normalForwards = Vector3d(0.0, 0.0, 1.0).rotate(rotation)
-        pos.add(Vector3d(normalForwards).mul(distance))
+        val flatForwards = Vector3d(-sin(yaw.toRadians()), -0.5, cos(yaw.toRadians()))
+        pos.add(Vector3d(flatForwards).mul(distance))
         velocity.set(0.0, 0.0, 0.0)
         lastTime = 0L
+
+        val direction = Vector3d(player.eyePos.toVector3f()).sub(pos).normalize()
+        val (newYaw, newPitch) = direction.lookAt()
+        yaw = newYaw.toDegrees()
+        pitch = newPitch.toDegrees()
+
         return true
     }
 
