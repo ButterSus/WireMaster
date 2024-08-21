@@ -1,7 +1,7 @@
 package com.buttersus.wiremaster.client.camera
 
 import com.buttersus.wiremaster.WireMaster
-import com.buttersus.wiremaster.extensions.clamp
+import com.buttersus.wiremaster.extensions.toDegrees
 import com.buttersus.wiremaster.extensions.toDouble
 import com.buttersus.wiremaster.extensions.toRadians
 import net.fabricmc.api.EnvType
@@ -16,14 +16,14 @@ import net.minecraft.util.math.MathHelper
 import org.joml.Quaterniond
 import org.joml.Vector3d
 import org.lwjgl.glfw.GLFW
-import kotlin.math.PI
-import kotlin.math.cos
-import kotlin.math.pow
-import kotlin.math.sin
+import kotlin.math.*
 
 @Environment(EnvType.CLIENT)
 object WireDesigner {
     private val mc = MinecraftClient.getInstance()
+    private val pos = Vector3d()
+    private val velocity = Vector3d()
+    private val lastInputVector = Vector3d()
     private val rotation = Quaterniond(0.0, 0.0, 0.0, 1.0)
     private val forwards = Vector3d(0.0, 0.0, 1.0)
     private val up = Vector3d(0.0, 1.0, 0.0)
@@ -31,20 +31,14 @@ object WireDesigner {
     private var active = false
     private var wasInCursorMode = false
     private var cursorMode = false
+    private var sprinting = false
     private var oldPerspective: Perspective? = null
     private var oldInput: Input? = null
     private var cameraInput: Input? = null
-    private var x = 0.0
-    private var y = 0.0
-    private var z = 0.0
     private var yaw = 0.0
     private var pitch = 0.0
-    private var forwardVelocity = 0.0
-    private var leftVelocity = 0.0
-    private var upVelocity = 0.0
     private var lastTime = 0L
     private var gameRendererPicking = false
-    private var cameraMovementType = CameraMovementType.NORMAL
 
     fun init() {
         ClientTickEvents.START_CLIENT_TICK.register {
@@ -53,9 +47,11 @@ object WireDesigner {
     }
 
     // Wire Designer
-    fun toggleWireDesigner(): Boolean = when (active) {
-        false -> enableWireDesigner()
-        true -> disableWireDesigner()
+    fun toggleWireDesigner(): Boolean {
+        return when (active) {
+            false -> enableWireDesigner()
+            true -> disableWireDesigner()
+        }
     }
 
     private fun disableWireDesigner(): Boolean {
@@ -91,23 +87,17 @@ object WireDesigner {
             mc.gameRenderer.onCameraEntitySet(if (mc.options.perspective.isFirstPerson) mc.getCameraEntity() else null)
 
         val frameTime = mc.lastFrameDuration
-        val pos = entity.getCameraPosVec(frameTime)
-        x = pos.x
-        y = pos.y
-        z = pos.z
+        val newPos = entity.getCameraPosVec(frameTime)
+        pos.set(newPos.toVector3f())
         yaw = entity.getYaw(frameTime).toDouble()
         pitch = entity.getPitch(frameTime).toDouble()
 
         calculateVectors()
 
         val distance = -2.0
-        x += forwards.x * distance
-        y += forwards.y * distance
-        z += forwards.z * distance
-
-        forwardVelocity = 0.0
-        leftVelocity = 0.0
-        upVelocity = 0.0
+        val normalForwards = Vector3d(0.0, 0.0, 1.0).rotate(rotation)
+        pos.add(Vector3d(normalForwards).mul(distance))
+        velocity.set(0.0, 0.0, 0.0)
         lastTime = 0L
         return true
     }
@@ -153,37 +143,18 @@ object WireDesigner {
     private fun calculateVectors() {
         rotation.rotationYXZ(-yaw * (PI.toFloat() / 180.0), pitch * (PI.toFloat() / 180.0), 0.0)
         forwards.set(
-            if (cameraMovementType == CameraMovementType.FLAT)
+            if (WireMaster.MOVEMENT_TYPE == CameraMovementType.FLAT)
                 Vector3d(-sin(yaw.toRadians()), 0.0, cos(yaw.toRadians()))
             else
                 Vector3d(0.0, 0.0, 1.0).rotate(rotation)
         )
         up.set(
-            if (cameraMovementType == CameraMovementType.ABSOLUTE)
+            if (WireMaster.MOVEMENT_TYPE == CameraMovementType.ABSOLUTE)
                 Vector3d(0.0, 1.0, 0.0).rotate(rotation)
             else
                 Vector3d(0.0, 1.0, 0.0)
         )
         left.set(1.0, 0.0, 0.0).rotate(rotation)
-    }
-
-    @Suppress("LocalVariableName")
-    private fun combineMovement(
-        _velocity: Double, impulse: Double, frameTime: Double,
-        acceleration: Double, slowdown: Double
-    ): Double {
-        var velocity = _velocity
-        // When moving opposite direction, velocity resets
-        if (impulse != 0.0) {
-            if (impulse > 0 && velocity < 0 || impulse < 0 && velocity > 0) {
-                if (WireMaster.COUNTER_STRAFING) velocity = 0.0
-                else velocity *= slowdown.pow(2)
-            }
-            velocity += acceleration * impulse * frameTime
-        } else {
-            velocity *= slowdown
-        }
-        return velocity
     }
 
     // Events && Mixin Methods
@@ -217,7 +188,7 @@ object WireDesigner {
     fun shouldOverrideCameraEntityPosition(entity: Entity) =
         active && (entity == mc.getCameraEntity() && gameRendererPicking)
 
-    fun onClientTickStart() {
+    private fun onClientTickStart() {
         if (!active) return
         val togglePerspectiveKey = mc.options.togglePerspectiveKey
         while (togglePerspectiveKey.wasPressed()) continue
@@ -226,32 +197,71 @@ object WireDesigner {
     }
 
     fun onRenderTickStart() {
-        if (!active) return
-        if (lastTime == 0L) return Unit.also { lastTime = System.nanoTime() }
+        if (!active || lastTime == 0L) {
+            lastTime = System.nanoTime()
+            return
+        }
         val currentTime = System.nanoTime()
         val frameTime = (currentTime - lastTime) / 1e9
         lastTime = currentTime
 
         val input = oldInput ?: return
-        val forwardImpulse = input.pressingForward.toDouble() - input.pressingBack.toDouble()
-        val leftImpulse = input.pressingLeft.toDouble() - input.pressingRight.toDouble()
-        val upImpulse = input.jumping.toDouble() - input.sneaking.toDouble()
+        val inputVector = Vector3d(
+            input.pressingLeft.toDouble() - input.pressingRight.toDouble(),
+            input.jumping.toDouble() - input.sneaking.toDouble(),
+            input.pressingForward.toDouble() - input.pressingBack.toDouble()
+        )
+
+        // Transform input vector to world space
+        val worldInputVector = Vector3d()
+            .add(Vector3d(forwards).mul(inputVector.z))
+            .add(Vector3d(left).mul(inputVector.x))
+            .add(Vector3d(up).mul(inputVector.y))
+
         val slowdown = WireMaster.SLOWDOWN.pow(frameTime)
 
-        forwardVelocity = combineMovement(forwardVelocity, forwardImpulse, frameTime, WireMaster.ACCELERATION, slowdown)
-        leftVelocity = combineMovement(leftVelocity, leftImpulse, frameTime, WireMaster.ACCELERATION, slowdown)
-        upVelocity = combineMovement(upVelocity, upImpulse, frameTime, WireMaster.ACCELERATION, slowdown)
+        if (worldInputVector.lengthSquared() > 0) {
+            inputVector.normalize()
+            worldInputVector.normalize()
 
-        // Getting radius-vector
-        val velocity = Vector3d()
-            .add(Vector3d(forwards).mul(forwardVelocity))
-            .add(Vector3d(left).mul(leftVelocity))
-            .add(Vector3d(up).mul(upVelocity))
-            .clamp(0.0, WireMaster.MAX_SPEED)
+            // Counter-strafing
+            if (WireMaster.COUNTER_STRAFING && lastInputVector.dot(inputVector) == -1.0) {
+                velocity.set(0.0, 0.0, 0.0)
+            }
 
-        x += velocity.x * frameTime
-        y += velocity.y * frameTime
-        z += velocity.z * frameTime
+            val currentSpeed = velocity.length()
+            if (currentSpeed > 0) {
+                // Calculate the angle between current velocity and new input direction
+                val angleBetween = acos(Vector3d(velocity).normalize().dot(worldInputVector)).toDegrees()
+
+                // Adjust velocity based on the angle
+                val turnFactor = when {
+                    angleBetween > 120 -> 0.8  // Sharp turn
+                    angleBetween > 60 -> 0.9   // Moderate turn
+                    else -> 0.95               // Minor adjustment
+                }
+
+                velocity.mul(turnFactor)
+                velocity.add(Vector3d(worldInputVector).mul((1 - turnFactor) * currentSpeed))
+            }
+
+            // Apply acceleration
+            val acceleration = if (sprinting) WireMaster.ACCELERATION * 3.0 else WireMaster.ACCELERATION
+            velocity.add(Vector3d(worldInputVector).mul(acceleration * frameTime))
+            lastInputVector.set(inputVector)
+        } else {
+            // Apply slowdown when no input
+            velocity.mul(slowdown)
+        }
+
+        // Clamp to max speed
+        val maxSpeed = if (sprinting) WireMaster.MAX_SPEED * 2.0 else WireMaster.MAX_SPEED
+        if (velocity.length() > maxSpeed) {
+            velocity.normalize().mul(maxSpeed)
+        }
+
+        // Update position
+        pos.add(Vector3d(velocity).mul(frameTime))
     }
 
     @Suppress("UNUSED_PARAMETER")
@@ -261,19 +271,35 @@ object WireDesigner {
         return true
     }
 
+    // Sprint
+    fun onSprintPress() {
+        sprinting = true
+        println("Pressed")
+    }
+
+    fun onSprintRelease() {
+        sprinting = false
+        println("Released")
+    }
+
     // Getters
     fun isActive() = active
     fun getXRot() = pitch
     fun getYRot() = yaw
-    fun getX() = x
-    fun getY() = y
-    fun getZ() = z
+    fun getX() = pos.x
+    fun getY() = pos.y
+    fun getZ() = pos.z
 
     // Other methods
-    fun canToggle() = mc.currentScreen == null && mc.world != null && mc.player != null  // Not in a GUI
+    fun canToggleWireDesigner() =
+        mc.currentScreen == null && mc.world != null && mc.player != null  // Not in a GUI
+
     fun canToggleCursorMode() =
         active && mc.currentScreen == null && mc.world != null && mc.player != null  // Active & not in a GUI
 
     fun canScroll() =
         active && mc.currentScreen == null && mc.world != null && mc.player != null  // Active & not in a GUI
+
+    fun canToggleSprint() =
+        mc.currentScreen == null && mc.world != null && mc.player != null  // Not in a GUI
 }

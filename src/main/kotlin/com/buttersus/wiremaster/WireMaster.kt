@@ -1,5 +1,6 @@
 package com.buttersus.wiremaster
 
+import com.buttersus.wiremaster.client.camera.CameraMovementType
 import net.fabricmc.api.EnvType
 import net.fabricmc.api.Environment
 
@@ -11,10 +12,10 @@ object WireMaster {
     const val MOD_NAME = "Wire Master"
 
     // Options
-    var PLANE_LOCKED_MOVEMENT: Boolean = false
+    var MOVEMENT_TYPE: CameraMovementType = CameraMovementType.NORMAL
     var EXPERIMENTAL_ORTHOGRAPHIC: Boolean = false
     var TRANSPARENT_PLAYERS: Boolean = false
-    var COUNTER_STRAFING: Boolean = false
+    var COUNTER_STRAFING: Boolean = true
     var MAX_SPEED: Double = 25.0
     var ACCELERATION: Double = 40.0
     var SLOWDOWN: Double = 0.01  // 99% of velocity will be lost in 1 second

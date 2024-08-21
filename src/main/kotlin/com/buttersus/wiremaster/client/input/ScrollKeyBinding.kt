@@ -11,7 +11,7 @@ import net.minecraft.client.MinecraftClient
 import net.minecraft.client.util.InputUtil
 
 @Environment(EnvType.CLIENT)
-internal class ScrollKeyBinding(
+class ScrollKeyBinding(
     id: String,
     private val code: Int,
     category: String

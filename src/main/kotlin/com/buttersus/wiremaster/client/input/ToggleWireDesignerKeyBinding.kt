@@ -10,7 +10,7 @@ import net.fabricmc.api.Environment
 import net.minecraft.client.util.InputUtil
 
 @Environment(EnvType.CLIENT)
-internal class ToggleWireDesignerKeyBinding : AmecsKeyBinding(
+class ToggleWireDesignerKeyBinding : AmecsKeyBinding(
     "key.${WireMaster.MOD_ID}.toggle_wire_designer",
     InputUtil.Type.KEYSYM,
     InputUtil.UNKNOWN_KEY.code,
@@ -18,7 +18,7 @@ internal class ToggleWireDesignerKeyBinding : AmecsKeyBinding(
     KeyModifiers()
 ), PriorityKeyBinding {
     override fun onPressedPriority(): Boolean {
-        if (!WireDesigner.canToggle()) return false
+        if (!WireDesigner.canToggleWireDesigner()) return false
         return WireDesigner.toggleWireDesigner()
     }
 }
