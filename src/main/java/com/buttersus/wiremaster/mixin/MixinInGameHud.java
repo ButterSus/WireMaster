@@ -8,7 +8,7 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Redirect;
 
 @Mixin(InGameHud.class)
-public abstract class InGameHudMixin {
+public abstract class MixinInGameHud {
     @Redirect(
             method = "renderCrosshair(Lnet/minecraft/client/util/math/MatrixStack;)V",
             at = @At(value = "INVOKE", target = "Lnet/minecraft/client/option/Perspective;isFirstPerson()Z"))

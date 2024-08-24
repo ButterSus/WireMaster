@@ -14,6 +14,7 @@ import net.minecraft.client.network.ClientPlayerEntity
 import net.minecraft.client.option.Perspective
 import net.minecraft.entity.Entity
 import net.minecraft.util.math.MathHelper
+import net.minecraft.util.math.Vec3d
 import org.joml.Quaterniond
 import org.joml.Vector3d
 import org.lwjgl.glfw.GLFW
@@ -271,10 +272,9 @@ object WireDesigner {
         pos.add(Vector3d(velocity).mul(frameTime))
     }
 
-    @Suppress("UNUSED_PARAMETER")
     fun onMouseScroll(mouseX: Double, mouseY: Double, scrollY: Double): Boolean {
         val scrollAmount = scrollY * mc.options.mouseSensitivity.value
-        println("Scroll amount: $scrollAmount")
+        println("mouseX: $mouseX, mouseY: $mouseY, scrollY: $scrollY, scrollAmount: $scrollAmount")
         return true
     }
 
@@ -296,6 +296,8 @@ object WireDesigner {
     fun getX() = pos.x
     fun getY() = pos.y
     fun getZ() = pos.z
+    fun getVec3dPos() = Vec3d(pos.x, pos.y, pos.z)
+    fun getCursorMode() = cursorMode
 
     // Other methods
     fun canToggleWireDesigner() =

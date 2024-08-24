@@ -20,8 +20,8 @@ class ScrollKeyBinding(
 ), PriorityKeyBinding {
     private val mc = MinecraftClient.getInstance()
 
-    private fun getMouseX(): Double = mc.mouse.x * mc.window.scaledWidth / mc.window.width
-    private fun getMouseY(): Double = mc.mouse.y * mc.window.scaledHeight / mc.window.height
+    private fun getMouseX(): Double = (mc.mouse.x / mc.window.width) * 2 - 1
+    private fun getMouseY(): Double = (mc.mouse.y / mc.window.height) * 2 - 1
 
     override fun onPressedPriority(): Boolean {
         if (!WireDesigner.canScroll()) return false

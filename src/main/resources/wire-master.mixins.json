@@ -4,18 +4,19 @@
   "package": "com.buttersus.wiremaster.mixin",
   "compatibilityLevel": "JAVA_17",
   "mixins": [
-    "EntityMixin"
   ],
   "client": [
-    "CameraMixin",
-    "GameOptionsMixin",
-    "GameRendererMixin",
-    "InGameHudMixin",
-    "KeyboardMixin",
-    "LivingEntityRendererMixin",
-    "MinecraftClientMixin",
-    "MouseMixin",
-    "WorldRendererMixin"
+    "GameRendererInvoker",
+    "MixinCamera",
+    "MixinEntity",
+    "MixinGameOptions",
+    "MixinGameRenderer",
+    "MixinInGameHud",
+    "MixinKeyboard",
+    "MixinLivingEntityRenderer",
+    "MixinMinecraftClient",
+    "MixinMouse",
+    "MixinWorldRenderer"
   ],
   "server": [],
   "injectors": {

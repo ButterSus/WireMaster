@@ -1,7 +1,6 @@
 package com.buttersus.wiremaster.client.input
 
 import com.buttersus.wiremaster.WireMaster
-import de.siphalor.amecs.api.AmecsKeyBinding
 import de.siphalor.amecs.api.KeyBindingUtils
 import net.fabricmc.api.EnvType
 import net.fabricmc.api.Environment

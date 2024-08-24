@@ -9,7 +9,7 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 @Mixin(GameOptions.class)
-public abstract class GameOptionsMixin {
+public abstract class MixinGameOptions {
     @Inject(at = @At("HEAD"), method = "getBobView()Lnet/minecraft/client/option/SimpleOption;", cancellable = true)
     private void onBobView(CallbackInfoReturnable<SimpleOption<Boolean>> cir) {
         // Disable the view bobbing effect when wire designer is active
