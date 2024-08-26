@@ -1,10 +1,7 @@
 package com.buttersus.wiremaster.client.camera
 
 import com.buttersus.wiremaster.WireMaster
-import com.buttersus.wiremaster.extensions.lookAt
-import com.buttersus.wiremaster.extensions.toDegrees
-import com.buttersus.wiremaster.extensions.toDouble
-import com.buttersus.wiremaster.extensions.toRadians
+import com.buttersus.wiremaster.extensions.*
 import net.fabricmc.api.EnvType
 import net.fabricmc.api.Environment
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents
@@ -14,8 +11,8 @@ import net.minecraft.client.network.ClientPlayerEntity
 import net.minecraft.client.option.Perspective
 import net.minecraft.entity.Entity
 import net.minecraft.util.math.MathHelper
-import net.minecraft.util.math.Vec3d
 import org.joml.Quaterniond
+import org.joml.Vector2d
 import org.joml.Vector3d
 import org.lwjgl.glfw.GLFW
 import kotlin.math.*
@@ -28,12 +25,17 @@ object WireDesigner {
     private val lastInputVector = Vector3d()
     private val rotation = Quaterniond(0.0, 0.0, 0.0, 1.0)
     private val forwards = Vector3d(0.0, 0.0, 1.0)
+    private val absoluteForwards = Vector3d(0.0, 0.0, 1.0)
     private val up = Vector3d(0.0, 1.0, 0.0)
+    private val absoluteUp = Vector3d(0.0, 1.0, 0.0)
     private val left = Vector3d(1.0, 0.0, 0.0)
+    private val absoluteLeft = Vector3d(1.0, 0.0, 0.0)
+    private val mouseDeltas = Vector2d(0.0, 0.0)
     private var active = false
     private var wasInCursorMode = false
     private var cursorMode = false
-    private var sprinting = false
+    private var sprintHold = false
+    private var movementControlHold = false
     private var oldPerspective: Perspective? = null
     private var oldInput: Input? = null
     private var cameraInput: Input? = null
@@ -129,6 +131,7 @@ object WireDesigner {
     private fun disableCursorMode(): Boolean {
         if (mc.window == null) return false
         cursorMode = false
+        movementControlHold = false
         GLFW.glfwSetInputMode(mc.window.handle, GLFW.GLFW_CURSOR, GLFW.GLFW_CURSOR_DISABLED)
         return true
     }
@@ -150,6 +153,8 @@ object WireDesigner {
     // Math
     private fun calculateVectors() {
         rotation.rotationYXZ(-yaw * (PI.toFloat() / 180.0), pitch * (PI.toFloat() / 180.0), 0.0)
+
+        // Customizable logic
         forwards.set(
             if (WireMaster.MOVEMENT_TYPE == CameraMovementType.FLAT)
                 Vector3d(-sin(yaw.toRadians()), 0.0, cos(yaw.toRadians()))
@@ -163,6 +168,11 @@ object WireDesigner {
                 Vector3d(0.0, 1.0, 0.0)
         )
         left.set(1.0, 0.0, 0.0).rotate(rotation)
+
+        // Do not modify behaviour
+        absoluteForwards.set(Vector3d(0.0, 0.0, 1.0).rotate(rotation))
+        absoluteUp.set(0.0, 1.0, 0.0).rotate(rotation)
+        absoluteLeft.set(1.0, 0.0, 0.0).rotate(rotation)
     }
 
     // Events && Mixin Methods
@@ -172,6 +182,8 @@ object WireDesigner {
                 pitch += xRot.toFloat() * 0.15f
                 yaw += yRot.toFloat() * 0.15f
                 pitch = MathHelper.clamp(pitch, -90.0, 90.0)  // Player can't turn 180 degrees vertically
+            } else {
+                mouseDeltas.add(yRot, xRot)  // Rotation about Y axis is horizontal movement and vice versa
             }
             calculateVectors()
         } else player.changeLookDirection(yRot, xRot)
@@ -185,6 +197,7 @@ object WireDesigner {
 
     fun onRenderCrosshairIsFirstPerson(cameraType: Perspective) = active || cameraType.isFirstPerson
     fun onRenderItemInHandIsFirstPerson(cameraType: Perspective) = active || cameraType.isFirstPerson
+
     fun onBeforeGameRendererPick() {
         gameRendererPicking = true
     }
@@ -213,6 +226,12 @@ object WireDesigner {
         val frameTime = (currentTime - lastTime) / 1e9
         lastTime = currentTime
 
+        // Compute movement and apply it
+        if (movementControlHold) handleMouseInputMovement()
+        else handleKeyboardInputMovement(frameTime)
+    }
+
+    private fun handleKeyboardInputMovement(frameTime: Double) {
         val input = oldInput ?: return
         val inputVector = Vector3d(
             input.pressingLeft.toDouble() - input.pressingRight.toDouble(),
@@ -254,7 +273,7 @@ object WireDesigner {
             }
 
             // Apply acceleration
-            val acceleration = if (sprinting) WireMaster.ACCELERATION * 3.0 else WireMaster.ACCELERATION
+            val acceleration = if (sprintHold) WireMaster.ACCELERATION * 3.0 else WireMaster.ACCELERATION
             velocity.add(Vector3d(worldInputVector).mul(acceleration * frameTime))
             lastInputVector.set(inputVector)
         } else {
@@ -263,7 +282,7 @@ object WireDesigner {
         }
 
         // Clamp to max speed
-        val maxSpeed = if (sprinting) WireMaster.MAX_SPEED * 2.0 else WireMaster.MAX_SPEED
+        val maxSpeed = if (sprintHold) WireMaster.MAX_SPEED * 2.0 else WireMaster.MAX_SPEED
         if (velocity.length() > maxSpeed) {
             velocity.normalize().mul(maxSpeed)
         }
@@ -272,32 +291,50 @@ object WireDesigner {
         pos.add(Vector3d(velocity).mul(frameTime))
     }
 
-    fun onMouseScroll(mouseX: Double, mouseY: Double, scrollY: Double): Boolean {
-        val scrollAmount = scrollY * mc.options.mouseSensitivity.value
-        println("mouseX: $mouseX, mouseY: $mouseY, scrollY: $scrollY, scrollAmount: $scrollAmount")
+    private fun handleMouseInputMovement() {
+        val mouseVector = Vector3d()
+            .add(Vector3d(absoluteLeft).mul(mouseDeltas.x))
+            .add(Vector3d(absoluteUp).mul(mouseDeltas.y))
+            .mul(mc.options.mouseSensitivity.value / 100.0)
+        mouseDeltas.set(0.0, 0.0)
+        pos.add(mouseVector)
+    }
+
+    @Suppress("UNUSED_PARAMETER")
+    fun onMouseScroll(scrollY: Double): Boolean {
         return true
     }
 
     // Sprint
     fun onSprintPress() {
-        sprinting = true
-        println("Pressed")
+        sprintHold = true
     }
 
     fun onSprintRelease() {
-        sprinting = false
-        println("Released")
+        sprintHold = false
+    }
+
+    // Movement Control
+    fun onMovementControlPress(): Boolean {
+        movementControlHold = true
+        mouseDeltas.set(0.0, 0.0)
+        return true
+    }
+
+    fun onMovementControlRelease(): Boolean {
+        movementControlHold = false
+        return true
     }
 
     // Getters
     fun isActive() = active
+    fun isCursorMode() = cursorMode
     fun getXRot() = pitch
     fun getYRot() = yaw
     fun getX() = pos.x
     fun getY() = pos.y
     fun getZ() = pos.z
-    fun getVec3dPos() = Vec3d(pos.x, pos.y, pos.z)
-    fun getCursorMode() = cursorMode
+    fun getVec3dPos() = pos.toVec3d()
 
     // Other methods
     fun canToggleWireDesigner() =
@@ -307,8 +344,11 @@ object WireDesigner {
         active && mc.currentScreen == null && mc.world != null && mc.player != null  // Active & not in a GUI
 
     fun canScroll() =
-        active && mc.currentScreen == null && mc.world != null && mc.player != null  // Active & not in a GUI
+        cursorMode && mc.currentScreen == null && mc.world != null && mc.player != null  // Active & not in a GUI
 
-    fun canToggleSprint() =
+    fun canHoldSprint() =
         mc.currentScreen == null && mc.world != null && mc.player != null  // Not in a GUI
+
+    fun canHoldMovementControl() =
+        cursorMode && mc.currentScreen == null && mc.world != null && mc.player != null  // Not in a GUI
 }

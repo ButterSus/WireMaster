@@ -12,17 +12,17 @@ import net.minecraft.client.util.InputUtil
 class SprintKeyBinding : AmecsKeyBinding(
     "key.${WireMaster.MOD_ID}.sprint",
     InputUtil.Type.KEYSYM,
-    InputUtil.UNKNOWN_KEY.code,
+    InputUtil.UNKNOWN_KEY.code,  // By default: Left Shift
     "category.${WireMaster.MOD_ID}.keybindings",
     KeyModifiers()
 ) {
     override fun onPressed() {
-        if (!WireDesigner.canToggleSprint()) return
+        if (!WireDesigner.canHoldSprint()) return
         WireDesigner.onSprintPress()
     }
 
     override fun onReleased() {
-        if (!WireDesigner.canToggleSprint()) return
+        if (!WireDesigner.canHoldSprint()) return
         WireDesigner.onSprintRelease()
     }
 }

@@ -26,7 +26,7 @@ That's all, everything else will be installed automatically.
 
    It's recommended to use the IDEA project manager to clone the repository, see [this tutorial](https://www.jetbrains.com/guide/java/tutorials/import-project/project-from-version-control/).
 
-2. Setup your `.idea` directory. Since git tracks all files in the repository, it's generally a bad idea to store all configuration files tracked. So, instead, we've put templates in the `.idea` directory.
+2. Set up your `.idea` directory. Since git tracks all files in the repository, it's generally a bad idea to store all configuration files tracked. So, instead, we've put templates in the `.idea` directory.
 
    You can load default configuration files using bash script `scripts/setup_idea_configs.sh`:
 

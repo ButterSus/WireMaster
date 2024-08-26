@@ -6,13 +6,14 @@
   "mixins": [
   ],
   "client": [
-    "GameRendererInvoker",
+    "MixinAbstractClientPlayerEntity",
+    "MixinAmecsExtensionKeyboard",
+    "MixinAmecsExtensionMouse",
     "MixinCamera",
     "MixinEntity",
     "MixinGameOptions",
     "MixinGameRenderer",
     "MixinInGameHud",
-    "MixinKeyboard",
     "MixinLivingEntityRenderer",
     "MixinMinecraftClient",
     "MixinMouse",

@@ -9,16 +9,22 @@ import net.fabricmc.api.EnvType
 import net.fabricmc.api.Environment
 import net.minecraft.client.util.InputUtil
 
+
 @Environment(EnvType.CLIENT)
-class ToggleCursorModeKeyBinding : AmecsKeyBinding(
-    "key.${WireMaster.MOD_ID}.toggle_cursor_mode",
+class MovementControlKeyBinding : AmecsKeyBinding(
+    "key.${WireMaster.MOD_ID}.movement_control",
     InputUtil.Type.KEYSYM,
-    InputUtil.UNKNOWN_KEY.code,  // By default: Q
+    InputUtil.UNKNOWN_KEY.code,  // By default: Middle Mouse
     "category.${WireMaster.MOD_ID}.keybindings",
     KeyModifiers()
 ), PriorityKeyBinding {
     override fun onPressedPriority(): Boolean {
-        if (!WireDesigner.canToggleCursorMode()) return false
-        return WireDesigner.toggleCursorMode()
+        if (!WireDesigner.canHoldMovementControl()) return false
+        return WireDesigner.onMovementControlPress()
+    }
+
+    override fun onReleasedPriority(): Boolean {
+        if (!WireDesigner.canHoldMovementControl()) return false
+        return WireDesigner.onMovementControlRelease()
     }
 }

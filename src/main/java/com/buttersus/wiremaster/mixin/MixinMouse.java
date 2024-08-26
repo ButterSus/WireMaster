@@ -7,7 +7,7 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Redirect;
 
-@Mixin(Mouse.class)
+@Mixin(value = Mouse.class, priority = 1100)
 public abstract class MixinMouse {
     @Redirect(
             method = "updateMouse()V",

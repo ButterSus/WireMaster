@@ -13,9 +13,9 @@ import net.minecraft.client.util.InputUtil
 class ToggleWireDesignerKeyBinding : AmecsKeyBinding(
     "key.${WireMaster.MOD_ID}.toggle_wire_designer",
     InputUtil.Type.KEYSYM,
-    InputUtil.UNKNOWN_KEY.code,
+    InputUtil.GLFW_KEY_Q,
     "category.${WireMaster.MOD_ID}.keybindings",
-    KeyModifiers()
+    KeyModifiers(false, true, false)
 ), PriorityKeyBinding {
     override fun onPressedPriority(): Boolean {
         if (!WireDesigner.canToggleWireDesigner()) return false

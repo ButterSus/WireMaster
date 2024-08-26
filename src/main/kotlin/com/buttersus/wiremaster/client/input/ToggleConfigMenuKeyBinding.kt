@@ -13,9 +13,9 @@ import net.minecraft.client.util.InputUtil
 class ToggleConfigMenuKeyBinding : AmecsKeyBinding(
     "key.${WireMaster.MOD_ID}.toggle_config_menu",
     InputUtil.Type.KEYSYM,
-    InputUtil.GLFW_KEY_J,
+    InputUtil.GLFW_KEY_E,
     "category.${WireMaster.MOD_ID}.keybindings",
-    KeyModifiers()
+    KeyModifiers(false, true, false)
 ), PriorityKeyBinding {
     override fun onPressedPriority(): Boolean {
         if (!WireMasterConfig.canToggleConfigMenu()) return false
