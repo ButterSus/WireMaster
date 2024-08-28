@@ -10,7 +10,11 @@ import net.minecraft.client.input.Input
 import net.minecraft.client.network.ClientPlayerEntity
 import net.minecraft.client.option.Perspective
 import net.minecraft.entity.Entity
+import net.minecraft.util.hit.HitResult
 import net.minecraft.util.math.MathHelper
+import net.minecraft.util.math.Vec3d
+import net.minecraft.world.RaycastContext
+import org.joml.Matrix4f
 import org.joml.Quaterniond
 import org.joml.Vector2d
 import org.joml.Vector3d
@@ -31,6 +35,10 @@ object WireDesigner {
     private val left = Vector3d(1.0, 0.0, 0.0)
     private val absoluteLeft = Vector3d(1.0, 0.0, 0.0)
     private val mouseDeltas = Vector2d(0.0, 0.0)
+    private val interpolationMovementVector = Vector3d(0.0, 0.0, 0.0)
+    private var interpolationVelocity = Vector3d(0.0, 0.0, 0.0)
+    private var mouseTargetedPos: Vector3d? = null
+    private var mouseTargetedHitResult: HitResult? = null
     private var active = false
     private var wasInCursorMode = false
     private var cursorMode = false
@@ -75,8 +83,8 @@ object WireDesigner {
 
     private fun enableWireDesigner(): Boolean {
         if (active) return false
-        val player = mc.player ?: return false
-        val entity = mc.getCameraEntity() ?: return false
+        val player = mc.player ?: throw IllegalStateException("Player is null")
+        val entity = mc.getCameraEntity() ?: throw IllegalStateException("Camera is null")
         active = true
 
         // Store old values
@@ -132,6 +140,8 @@ object WireDesigner {
         if (mc.window == null) return false
         cursorMode = false
         movementControlHold = false
+        mouseTargetedPos = null
+        mouseTargetedHitResult = null
         GLFW.glfwSetInputMode(mc.window.handle, GLFW.GLFW_CURSOR, GLFW.GLFW_CURSOR_DISABLED)
         return true
     }
@@ -176,6 +186,37 @@ object WireDesigner {
     }
 
     // Events && Mixin Methods
+    fun getCursorVector(mouseVector: Vector3d): Vec3d {
+        val mc = MinecraftClient.getInstance()
+        val player = mc.player ?: throw IllegalStateException("Player is null")
+        val vector = mouseVector.toVector3f()
+
+        Matrix4f()
+            .set(mc.gameRenderer.getBasicProjectionMatrix((player.fovMultiplier * mc.options.fov.value).toDouble()))
+            .invert()  // Compute view vector from NDC space
+            .transformPosition(vector)
+        vector.normalize()  // Normalize vector
+        Matrix4f()
+            .rotate(mc.gameRenderer.camera.rotation)  // Rotate vector
+            .transformPosition(vector)
+        vector.negate()  // Flip vector
+
+        // Return direction vector
+        return vector.toVec3d()
+    }
+
+    fun getMouseVector(): Vector3d {
+        val mc = MinecraftClient.getInstance()
+        val window = mc.window ?: throw IllegalStateException("Window is null")
+
+        // Return NDC coordinates vector
+        return Vector3d(
+            (mc.mouse.x / window.width * 2.0 - 1.0),
+            (mc.mouse.y / window.height * 2.0 - 1.0),
+            1.0
+        )
+    }
+
     fun onPlayerTurn(player: ClientPlayerEntity, yRot: Double, xRot: Double) {
         if (active) {
             if (!cursorMode) {
@@ -183,7 +224,10 @@ object WireDesigner {
                 yaw += yRot.toFloat() * 0.15f
                 pitch = MathHelper.clamp(pitch, -90.0, 90.0)  // Player can't turn 180 degrees vertically
             } else {
-                mouseDeltas.add(yRot, xRot)  // Rotation about Y axis is horizontal movement and vice versa
+                mouseDeltas.add(
+                    yRot / mc.window.width * 2,
+                    xRot / mc.window.height * 2
+                )  // Rotation about Y axis is horizontal movement and vice versa
             }
             calculateVectors()
         } else player.changeLookDirection(yRot, xRot)
@@ -228,7 +272,8 @@ object WireDesigner {
 
         // Compute movement and apply it
         if (movementControlHold) handleMouseInputMovement()
-        else handleKeyboardInputMovement(frameTime)
+        handleKeyboardInputMovement(frameTime)
+        handleInterpolationMovementVector(frameTime)
     }
 
     private fun handleKeyboardInputMovement(frameTime: Double) {
@@ -240,10 +285,15 @@ object WireDesigner {
         )
 
         // Transform input vector to world space
-        val worldInputVector = Vector3d()
-            .add(Vector3d(forwards).mul(inputVector.z))
-            .add(Vector3d(left).mul(inputVector.x))
-            .add(Vector3d(up).mul(inputVector.y))
+        val worldInputVector = if (cursorMode)
+            Vector3d()
+                .add(Vector3d(absoluteUp).mul(inputVector.z))
+                .add(Vector3d(absoluteLeft).mul(inputVector.x))
+        else
+            Vector3d()
+                .add(Vector3d(forwards).mul(inputVector.z))
+                .add(Vector3d(left).mul(inputVector.x))
+                .add(Vector3d(up).mul(inputVector.y))
 
         val slowdown = WireMaster.SLOWDOWN.pow(frameTime)
 
@@ -292,16 +342,46 @@ object WireDesigner {
     }
 
     private fun handleMouseInputMovement() {
-        val mouseVector = Vector3d()
-            .add(Vector3d(absoluteLeft).mul(mouseDeltas.x))
-            .add(Vector3d(absoluteUp).mul(mouseDeltas.y))
-            .mul(mc.options.mouseSensitivity.value / 100.0)
+        // Calculate delta of positions
+        val targetedPos = mouseTargetedPos ?: throw IllegalStateException("Targeted position is null")
+        val targetedPosDelta = Vector3d(targetedPos).sub(pos)
+
+        // Get the 2nd cursor vector and perform raycast
+        val newCursorVector =
+            getCursorVector(getMouseVector().add(Vector3d(mouseDeltas.x, mouseDeltas.y, 0.0))).toVector3d()
+        val newTargetedPointDelta =
+            Vector3d(newCursorVector).mul(absoluteForwards.dot(targetedPosDelta) / absoluteForwards.dot(newCursorVector))
+
+        // Apply delta to position
+        val deltaVector = Vector3d(targetedPosDelta).sub(newTargetedPointDelta)
+        pos.add(deltaVector)
+
         mouseDeltas.set(0.0, 0.0)
-        pos.add(mouseVector)
     }
 
-    @Suppress("UNUSED_PARAMETER")
+    private fun handleInterpolationMovementVector(frameTime: Double) {
+        val deltaVector = Vector3d(interpolationMovementVector).sub(Vector3d(interpolationVelocity).mul(0.25))
+
+        // Accelerate
+        val dampingFactor = 0.1.pow(frameTime)
+        interpolationVelocity.add(Vector3d(deltaVector).mul(dampingFactor))
+
+        // Apply velocity
+        val deltaPos = Vector3d(interpolationVelocity).mul(frameTime)
+        interpolationMovementVector.sub(deltaPos)
+        pos.add(deltaPos)
+
+        // Small thresholds
+        if (interpolationMovementVector.length() < 0.01 && interpolationVelocity.length() < 0.01) {
+            interpolationMovementVector.set(0.0, 0.0, 0.0)
+            interpolationVelocity.set(0.0, 0.0, 0.0)
+        }
+    }
+
     fun onMouseScroll(scrollY: Double): Boolean {
+        val scrollVector = Vector3d()
+            .add(Vector3d(absoluteForwards).mul(scrollY))
+        interpolationMovementVector.add(scrollVector)
         return true
     }
 
@@ -318,11 +398,47 @@ object WireDesigner {
     fun onMovementControlPress(): Boolean {
         movementControlHold = true
         mouseDeltas.set(0.0, 0.0)
+
+        // == Compute and save targeted position into variable ==
+
+        val world = mc.world ?: throw IllegalStateException("World is null")
+        val interactionManager = mc.interactionManager ?: throw IllegalStateException("Interaction Manager is null")
+
+        // Get the cursor direction vector
+        val cursorVector = getCursorVector(getMouseVector()).toVector3d()
+        val reachDistance = interactionManager.reachDistance.toDouble()
+        val deltaVector = Vector3d()
+            .add(Vector3d(cursorVector).mul(reachDistance))
+
+        // Perform raycast to determine the targeted point in 3D space
+        val blockHitResult = world.raycast(
+            RaycastContext(
+                pos.toVec3d(),
+                Vector3d(pos).add(deltaVector).toVec3d(),
+                RaycastContext.ShapeType.COLLIDER,  // Only block collisions
+                RaycastContext.FluidHandling.ANY,  // Include fluids
+                mc.player
+            )
+        )
+
+        // Check if it's a block
+        when (blockHitResult.type) {
+            HitResult.Type.MISS -> return true
+            HitResult.Type.BLOCK -> {
+                mouseTargetedPos = blockHitResult.pos.toVector3d()
+                mouseTargetedHitResult = blockHitResult
+            }
+
+            else -> throw IllegalStateException("Unexpected hit result type")
+        }
+
         return true
     }
 
     fun onMovementControlRelease(): Boolean {
         movementControlHold = false
+        mouseTargetedPos = null
+        mouseTargetedHitResult = null
         return true
     }
 
@@ -335,6 +451,7 @@ object WireDesigner {
     fun getY() = pos.y
     fun getZ() = pos.z
     fun getVec3dPos() = pos.toVec3d()
+    fun getMouseTargetedHitResult() = mouseTargetedHitResult
 
     // Other methods
     fun canToggleWireDesigner() =

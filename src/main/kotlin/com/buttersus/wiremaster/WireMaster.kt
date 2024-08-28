@@ -19,4 +19,5 @@ object WireMaster {
     var MAX_SPEED: Double = 25.0
     var ACCELERATION: Double = 40.0
     var SLOWDOWN: Double = 0.01  // 99% of velocity will be lost in 1 second
+    var REACH_DISTANCE: Double = 512.0
 }

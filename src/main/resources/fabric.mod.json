@@ -26,13 +26,13 @@
     "wire-master.mixins.json"
   ],
   "depends": {
-    "fabricloader": ">=0.14.25",
+    "fabricloader": ">=0.16.3",
     "fabric-api": "*",
     "minecraft": "~1.19.4",
     "java": ">=17",
     "fabric-language-kotlin": ">=1.9.2+kotlin.1.8.10",
-    "amecsapi": ">=1.5.3+mc1.19.4",
-    "yet-another-config-lib": ">=2.3.0"
+    "amecsapi": ">=1.4.0+mc1.19.4",
+    "yet-another-config-lib": ">=2.4.2"
   },
   "recommends": {
     "modmenu": ">=6.3.1"

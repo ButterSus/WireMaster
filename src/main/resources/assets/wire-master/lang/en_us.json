@@ -16,11 +16,14 @@
   "config.wire-master.acceleration.tooltip": "Acceleration of flying speed in wire designer mode",
   "config.wire-master.slowdown": "Slowdown",
   "config.wire-master.slowdown.tooltip": "Slowdown of flying speed in wire designer mode",
+  "config.wire-master.reach_distance": "Reach distance",
+  "config.wire-master.reach_distance.tooltip": "Is used if cursor mode is enabled, if it's too high you might get performance issues",
   "category.wire-master.keybindings": "Wire Master",
   "key.wire-master.toggle_wire_designer": "Toggle wire designer",
   "key.wire-master.toggle_config_menu": "Toggle config menu",
   "key.wire-master.toggle_cursor_mode": "Toggle cursor mode",
   "key.wire-master.scroll_down": "Scroll down",
   "key.wire-master.scroll_up": "Scroll up",
-  "key.wire-master.sprint": "Sprint"
+  "key.wire-master.sprint": "Sprint",
+  "key.wire-master.movement_control": "Movement control"
 }

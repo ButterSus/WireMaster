@@ -13,7 +13,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 // Mixin applied after Amecs API
 @Mixin(value = Keyboard.class, priority = 1100)
 public abstract class MixinAmecsExtensionKeyboard {
-    @Inject(method = "onKey", at = @At(value = "FIELD", target = "Lnet/minecraft/client/MinecraftClient;currentScreen:Lnet/minecraft/client/gui/screen/Screen;", ordinal = 0, shift = At.Shift.BEFORE), cancellable = true)
+    @Inject(method = "onKey", at = @At(value = "FIELD", target = "Lnet/minecraft/client/MinecraftClient;currentScreen:Lnet/minecraft/client/gui/screen/Screen;", ordinal = 0), cancellable = true)
     private void onKeyPriority(long window, int key, int scancode, int action, int modifiers, CallbackInfo ci) {
         MinecraftClient mc = MinecraftClient.getInstance();
         KeyBindings keyBindings = KeyBindings.INSTANCE;

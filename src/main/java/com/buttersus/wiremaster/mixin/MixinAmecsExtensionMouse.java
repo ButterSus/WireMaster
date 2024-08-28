@@ -3,13 +3,13 @@ package com.buttersus.wiremaster.mixin;
 import com.buttersus.wiremaster.client.input.KeyBindings;
 import com.buttersus.wiremaster.client.input.MovementControlKeyBinding;
 import com.buttersus.wiremaster.client.input.ScrollKeyBinding;
+import com.llamalad7.mixinextras.sugar.Local;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.Mouse;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-import org.spongepowered.asm.mixin.injection.callback.LocalCapture;
 
 // Mixin applied after Amecs API
 @Mixin(value = Mouse.class, priority = 1100)
@@ -28,8 +28,8 @@ public abstract class MixinAmecsExtensionMouse {
         }
     }
 
-    @Inject(method = "onMouseScroll", at = @At(value = "FIELD", target = "Lnet/minecraft/client/MinecraftClient;currentScreen:Lnet/minecraft/client/gui/screen/Screen;", ordinal = 0), locals = LocalCapture.CAPTURE_FAILHARD, cancellable = true)
-    private void onMouseScroll(long window, double horizontal, double vertical, CallbackInfo ci, double deltaY) {
+    @Inject(method = "onMouseScroll", at = @At(value = "FIELD", target = "Lnet/minecraft/client/MinecraftClient;currentScreen:Lnet/minecraft/client/gui/screen/Screen;", ordinal = 0), cancellable = true)
+    private void onMouseScroll(long window, double horizontal, double vertical, CallbackInfo ci, @Local(ordinal = 2) double deltaY) {
         KeyBindings keyBindings = KeyBindings.INSTANCE;
         ScrollKeyBinding scrollUpKeyBinding = keyBindings.getSCROLL_UP();
         ScrollKeyBinding scrollDownKeyBinding = keyBindings.getSCROLL_DOWN();

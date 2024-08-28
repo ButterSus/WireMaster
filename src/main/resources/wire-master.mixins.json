@@ -10,6 +10,7 @@
     "MixinAmecsExtensionKeyboard",
     "MixinAmecsExtensionMouse",
     "MixinCamera",
+    "MixinClientPlayerInteractionManager",
     "MixinEntity",
     "MixinGameOptions",
     "MixinGameRenderer",

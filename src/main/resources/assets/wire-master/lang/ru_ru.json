@@ -16,11 +16,14 @@
   "config.wire-master.acceleration.tooltip": "Ускорение скорости полета в режиме проектирования проводов",
   "config.wire-master.slowdown": "Замедление",
   "config.wire-master.slowdown.tooltip": "Замедление скорости полета в режиме проектирования проводов",
+  "config.wire-master.reach_distance": "Дистанция курсора",
+  "config.wire-master.reach_distance.tooltip": "Используется если курсор включен, если значение слишком больное, то могут возникнуть проблемы с производительностью",
   "category.wire-master.keybindings": "WireMaster",
   "key.wire-master.toggle_wire_designer": "Переключить редактор проводов",
   "key.wire-master.toggle_config_menu": "Переключить меню настроек",
   "key.wire-master.toggle_cursor_mode": "Переключить режим курсора",
   "key.wire-master.scroll_down": "Прокрутить вниз",
   "key.wire-master.scroll_up": "Прокрутить вверх",
-  "key.wire-master.sprint": "Спринт"
+  "key.wire-master.sprint": "Спринт",
+  "key.wire-master.movement_control": "Включить контроль"
 }

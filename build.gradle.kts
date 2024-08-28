@@ -3,12 +3,11 @@
 plugins {
     kotlin("jvm")
     id("fabric-loom")
-    id("maven-publish")
     java
 }
 
-group = property("maven_group")!!
 version = property("mod_version")!!
+group = property("maven_group")!!
 
 repositories {
     maven("https://maven.siphalor.de/")  // Amecs API
@@ -21,7 +20,6 @@ dependencies {
     mappings("net.fabricmc:yarn:${property("yarn_mappings")}:v2")
     modImplementation("net.fabricmc:fabric-loader:${property("loader_version")}")
     modImplementation("net.fabricmc:fabric-language-kotlin:${property("fabric_kotlin_version")}")
-    modImplementation("io.github.llamalad7:mixinextras-fabric:${property("mixin_extras_version")}")
     modApi("net.fabricmc.fabric-api:fabric-api:${property("fabric_api_version")}")
     val amecs_api_minecraft_version = property("minecraft_version").toString().split(".").take(2).joinToString(".")
     modApi("de.siphalor:amecsapi-$amecs_api_minecraft_version:${property("amecs_api_version")}")
@@ -38,7 +36,9 @@ tasks {
     }
 
     jar {
-        from("LICENSE")
+        from("LICENSE") {
+            rename { "${it}_${base.archivesName.get()}" }
+        }
     }
 }
 
@@ -48,4 +48,6 @@ kotlin {
 
 java {
     withSourcesJar()
+    sourceCompatibility = JavaVersion.VERSION_17
+    targetCompatibility = JavaVersion.VERSION_17
 }

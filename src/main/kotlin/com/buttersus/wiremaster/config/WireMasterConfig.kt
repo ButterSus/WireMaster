@@ -33,6 +33,7 @@ object WireMasterConfig {
     private const val MAX_SPEED_KEY = "max_speed"
     private const val ACCELERATION_KEY = "acceleration"
     private const val SLOWDOWN_KEY = "slowdown"
+    private const val REACH_DISTANCE_KEY = "reach_distance"
 
     // Save & load
     private fun save() {
@@ -44,6 +45,7 @@ object WireMasterConfig {
         properties.setProperty(MAX_SPEED_KEY, WireMaster.MAX_SPEED.toString())
         properties.setProperty(ACCELERATION_KEY, WireMaster.ACCELERATION.toString())
         properties.setProperty(SLOWDOWN_KEY, WireMaster.SLOWDOWN.toString())
+        properties.setProperty(REACH_DISTANCE_KEY, WireMaster.REACH_DISTANCE.toString())
 
         CONFIG_FILE.outputStream().use { outputStream ->
             properties.store(outputStream, "WireMaster Configuration")
@@ -69,6 +71,8 @@ object WireMasterConfig {
             properties.getProperty(ACCELERATION_KEY, "40.0").let(String::toDouble)
         WireMaster.SLOWDOWN =
             properties.getProperty(SLOWDOWN_KEY, "0.01").let(String::toDouble)
+        WireMaster.REACH_DISTANCE =
+            properties.getProperty(REACH_DISTANCE_KEY, "512.0").let(String::toDouble)
     }
 
     // Mod menu options screen
@@ -160,7 +164,19 @@ object WireMasterConfig {
                                 { WireMaster.SLOWDOWN },
                                 { WireMaster.SLOWDOWN = it }
                             )
-                            .controller { option -> DoubleSliderController(option, 0.01, 1.0, 0.01) }
+                            .controller { option -> DoubleSliderController(option, 0.00, 1.0, 0.01) }
+                            .build()
+                    )
+                    .option(
+                        Option.createBuilder(Double::class.java)
+                            .name(Text.translatable("config.${WireMaster.MOD_ID}.reach_distance"))
+                            .tooltip(Text.translatable("config.${WireMaster.MOD_ID}.reach_distance.tooltip"))
+                            .binding(
+                                512.0,
+                                { WireMaster.REACH_DISTANCE },
+                                { WireMaster.REACH_DISTANCE = it }
+                            )
+                            .controller { option -> DoubleSliderController(option, 0.0, 1024.0, 1.0) }
                             .build()
                     )
                     .build()

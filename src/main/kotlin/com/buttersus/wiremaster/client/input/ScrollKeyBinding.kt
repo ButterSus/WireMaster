@@ -15,7 +15,7 @@ class ScrollKeyBinding(
     private val scrollY: Double
 ) : AmecsKeyBinding(
     id,
-    InputUtil.Type.MOUSE,
+    InputUtil.Type.KEYSYM,
     InputUtil.UNKNOWN_KEY.code,  // By default: Mouse Wheel
     "category.${WireMaster.MOD_ID}.keybindings",
     KeyModifiers()
