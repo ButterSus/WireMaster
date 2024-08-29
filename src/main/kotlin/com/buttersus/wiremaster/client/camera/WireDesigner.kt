@@ -1,6 +1,8 @@
 package com.buttersus.wiremaster.client.camera
 
 import com.buttersus.wiremaster.WireMaster
+import com.buttersus.wiremaster.client.camera.interpolation.ExponentialInterpolation
+import com.buttersus.wiremaster.client.camera.interpolation.SpringInterpolation
 import com.buttersus.wiremaster.extensions.*
 import net.fabricmc.api.EnvType
 import net.fabricmc.api.Environment
@@ -35,10 +37,10 @@ object WireDesigner {
     private val left = Vector3d(1.0, 0.0, 0.0)
     private val absoluteLeft = Vector3d(1.0, 0.0, 0.0)
     private val mouseDeltas = Vector2d(0.0, 0.0)
-    private val interpolationMovementVector = Vector3d(0.0, 0.0, 0.0)
-    private var interpolationVelocity = Vector3d(0.0, 0.0, 0.0)
-    private var mouseTargetedPos: Vector3d? = null
-    private var mouseTargetedHitResult: HitResult? = null
+    private val scrollInterpolation = SpringInterpolation.createBasic(pos)
+    private val cursorInterpolation = ExponentialInterpolation.createQuick(pos)
+    private var cursorTargetedPos: Vector3d? = null
+    private var cursorTargetedHitResult: HitResult? = null
     private var active = false
     private var wasInCursorMode = false
     private var cursorMode = false
@@ -140,8 +142,10 @@ object WireDesigner {
         if (mc.window == null) return false
         cursorMode = false
         movementControlHold = false
-        mouseTargetedPos = null
-        mouseTargetedHitResult = null
+        cursorTargetedPos = null
+        cursorTargetedHitResult = null
+        cursorInterpolation.reset()
+        scrollInterpolation.reset()
         GLFW.glfwSetInputMode(mc.window.handle, GLFW.GLFW_CURSOR, GLFW.GLFW_CURSOR_DISABLED)
         return true
     }
@@ -273,7 +277,10 @@ object WireDesigner {
         // Compute movement and apply it
         if (movementControlHold) handleMouseInputMovement()
         handleKeyboardInputMovement(frameTime)
-        handleInterpolationMovementVector(frameTime)
+
+        // Interpolations
+        scrollInterpolation.update(frameTime)
+        cursorInterpolation.update(frameTime)
     }
 
     private fun handleKeyboardInputMovement(frameTime: Double) {
@@ -343,8 +350,8 @@ object WireDesigner {
 
     private fun handleMouseInputMovement() {
         // Calculate delta of positions
-        val targetedPos = mouseTargetedPos ?: throw IllegalStateException("Targeted position is null")
-        val targetedPosDelta = Vector3d(targetedPos).sub(pos)
+        val targetedPos = cursorTargetedPos ?: throw IllegalStateException("Targeted position is null")
+        val targetedPosDelta = Vector3d(targetedPos).sub(pos).sub(cursorInterpolation.get())
 
         // Get the 2nd cursor vector and perform raycast
         val newCursorVector =
@@ -352,36 +359,18 @@ object WireDesigner {
         val newTargetedPointDelta =
             Vector3d(newCursorVector).mul(absoluteForwards.dot(targetedPosDelta) / absoluteForwards.dot(newCursorVector))
 
-        // Apply delta to position
-        val deltaVector = Vector3d(targetedPosDelta).sub(newTargetedPointDelta)
-        pos.add(deltaVector)
+        // Apply delta to interpolation
+        val deltaPos = Vector3d(targetedPosDelta).sub(newTargetedPointDelta)
+        cursorInterpolation.add(deltaPos)
 
+        // Reset mouse deltas
         mouseDeltas.set(0.0, 0.0)
-    }
-
-    private fun handleInterpolationMovementVector(frameTime: Double) {
-        val deltaVector = Vector3d(interpolationMovementVector).sub(Vector3d(interpolationVelocity).mul(0.25))
-
-        // Accelerate
-        val dampingFactor = 0.1.pow(frameTime)
-        interpolationVelocity.add(Vector3d(deltaVector).mul(dampingFactor))
-
-        // Apply velocity
-        val deltaPos = Vector3d(interpolationVelocity).mul(frameTime)
-        interpolationMovementVector.sub(deltaPos)
-        pos.add(deltaPos)
-
-        // Small thresholds
-        if (interpolationMovementVector.length() < 0.01 && interpolationVelocity.length() < 0.01) {
-            interpolationMovementVector.set(0.0, 0.0, 0.0)
-            interpolationVelocity.set(0.0, 0.0, 0.0)
-        }
     }
 
     fun onMouseScroll(scrollY: Double): Boolean {
         val scrollVector = Vector3d()
             .add(Vector3d(absoluteForwards).mul(scrollY))
-        interpolationMovementVector.add(scrollVector)
+        scrollInterpolation.add(scrollVector)
         return true
     }
 
@@ -425,8 +414,8 @@ object WireDesigner {
         when (blockHitResult.type) {
             HitResult.Type.MISS -> return true
             HitResult.Type.BLOCK -> {
-                mouseTargetedPos = blockHitResult.pos.toVector3d()
-                mouseTargetedHitResult = blockHitResult
+                cursorTargetedPos = blockHitResult.pos.toVector3d()
+                cursorTargetedHitResult = blockHitResult
             }
 
             else -> throw IllegalStateException("Unexpected hit result type")
@@ -437,8 +426,8 @@ object WireDesigner {
 
     fun onMovementControlRelease(): Boolean {
         movementControlHold = false
-        mouseTargetedPos = null
-        mouseTargetedHitResult = null
+        cursorTargetedPos = null
+        cursorTargetedHitResult = null
         return true
     }
 
@@ -451,7 +440,7 @@ object WireDesigner {
     fun getY() = pos.y
     fun getZ() = pos.z
     fun getVec3dPos() = pos.toVec3d()
-    fun getMouseTargetedHitResult() = mouseTargetedHitResult
+    fun getMouseTargetedHitResult() = cursorTargetedHitResult
 
     // Other methods
     fun canToggleWireDesigner() =
