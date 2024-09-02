@@ -25,6 +25,7 @@
   "mixins": [
     "wire-master.mixins.json"
   ],
+  "accessWidener": "wire-master.accesswidener",
   "depends": {
     "fabricloader": ">=0.16.3",
     "fabric-api": "*",

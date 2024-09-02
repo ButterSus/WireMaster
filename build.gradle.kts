@@ -51,3 +51,7 @@ java {
     sourceCompatibility = JavaVersion.VERSION_17
     targetCompatibility = JavaVersion.VERSION_17
 }
+
+loom {
+    accessWidenerPath = file("src/main/resources/wire-master.accesswidener")
+}
