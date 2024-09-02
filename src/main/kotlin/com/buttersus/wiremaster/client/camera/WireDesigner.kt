@@ -53,6 +53,12 @@ object WireDesigner {
     private var pitch = 0.0
     private var lastTime = 0L
     private var gameRendererPicking = false
+    val mode
+        get() = when {
+            cursorMode -> Modes.CURSOR
+            active -> Modes.FLY
+            else -> Modes.NORMAL
+        }
 
     fun init() {
         ClientTickEvents.START_CLIENT_TICK.register {
@@ -262,7 +268,7 @@ object WireDesigner {
         val togglePerspectiveKey = mc.options.togglePerspectiveKey
         while (togglePerspectiveKey.wasPressed()) continue
         togglePerspectiveKey.isPressed = false
-        oldInput?.tick(false, 0f)
+        oldInput?.tick(false, 0.0f)
     }
 
     fun onRenderTickStart() {

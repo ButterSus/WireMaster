@@ -5,7 +5,7 @@ import net.minecraft.client.MinecraftClient
 import net.minecraft.client.gui.DrawableHelper
 import net.minecraft.client.util.math.MatrixStack
 
-object ModeHudOverlay : HudRenderCallback {
+object HudTestOverlay : HudRenderCallback {
     private val mc = MinecraftClient.getInstance()
 
     @Suppress("UNUSED_VARIABLE")
@@ -20,7 +20,7 @@ object ModeHudOverlay : HudRenderCallback {
 
         // Position
         val (width, height) = mc.window.scaledWidth to mc.window.scaledHeight
-        val (x0, y0) = 8f to -8f + height
+        val (x0, y0) = 8.0f to -8.0f + height
         val (paddingX, paddingY) = 2 to 1
         val lineSpacing = 2
 

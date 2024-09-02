@@ -1,7 +1,10 @@
 package com.buttersus.wiremaster.client.camera.interpolation
 
+import net.fabricmc.api.EnvType
+import net.fabricmc.api.Environment
 import org.joml.Vector3d
 
+@Environment(EnvType.CLIENT)
 class SpringInterpolation(
     posReference: Vector3d,
     private val stiffness: Double,
