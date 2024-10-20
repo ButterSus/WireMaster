@@ -67,16 +67,16 @@ object WireDesigner {
     }
 
     // Wire Designer
-    fun toggleWireDesigner(): Boolean {
-        return when (active) {
+    fun toggleWireDesigner() {
+        when (active) {
             false -> enableWireDesigner()
             true -> disableWireDesigner()
         }
     }
 
-    private fun disableWireDesigner(): Boolean {
-        if (!active) return false
-        val player = mc.player ?: return false
+    private fun disableWireDesigner() {
+        if (!active) return
+        val player = mc.player ?: return
         active = false
         if (cursorMode) disableCursorMode()
 
@@ -86,11 +86,11 @@ object WireDesigner {
         if (cameraType.isFirstPerson != mc.options.perspective.isFirstPerson)
             mc.gameRenderer.onCameraEntitySet(if (mc.options.perspective.isFirstPerson) mc.getCameraEntity() else null)
         oldPerspective = null
-        return true
+        return
     }
 
-    private fun enableWireDesigner(): Boolean {
-        if (active) return false
+    private fun enableWireDesigner() {
+        if (active) return
         val player = mc.player ?: throw IllegalStateException("Player is null")
         val entity = mc.getCameraEntity() ?: throw IllegalStateException("Camera is null")
         active = true
@@ -124,8 +124,6 @@ object WireDesigner {
         val (newYaw, newPitch) = direction.lookAt()
         yaw = newYaw.toDegrees()
         pitch = newPitch.toDegrees()
-
-        return true
     }
 
     // Cursor mode
@@ -390,7 +388,7 @@ object WireDesigner {
     }
 
     // Movement Control
-    fun onMovementControlPress(): Boolean {
+    fun onMovementControlPress() {
         movementControlHold = true
         mouseDeltas.set(0.0, 0.0)
 
@@ -418,7 +416,7 @@ object WireDesigner {
 
         // Check if it's a block
         when (blockHitResult.type) {
-            HitResult.Type.MISS -> return true
+            HitResult.Type.MISS -> return
             HitResult.Type.BLOCK -> {
                 cursorTargetedPos = blockHitResult.pos.toVector3d()
                 cursorTargetedHitResult = blockHitResult
@@ -426,15 +424,12 @@ object WireDesigner {
 
             else -> throw IllegalStateException("Unexpected hit result type")
         }
-
-        return true
     }
 
-    fun onMovementControlRelease(): Boolean {
+    fun onMovementControlRelease() {
         movementControlHold = false
         cursorTargetedPos = null
         cursorTargetedHitResult = null
-        return true
     }
 
     // Getters

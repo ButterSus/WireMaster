@@ -20,11 +20,13 @@ class MovementControlKeyBinding : AmecsKeyBinding(
 ), PriorityKeyBinding {
     override fun onPressedPriority(): Boolean {
         if (!WireDesigner.canHoldMovementControl()) return false
-        return WireDesigner.onMovementControlPress()
+        WireDesigner.onMovementControlPress()
+        return true
     }
 
     override fun onReleasedPriority(): Boolean {
         if (!WireDesigner.canHoldMovementControl()) return false
-        return WireDesigner.onMovementControlRelease()
+        WireDesigner.onMovementControlRelease()
+        return true
     }
 }

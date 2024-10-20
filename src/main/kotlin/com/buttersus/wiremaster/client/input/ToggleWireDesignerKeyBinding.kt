@@ -19,6 +19,7 @@ class ToggleWireDesignerKeyBinding : AmecsKeyBinding(
 ), PriorityKeyBinding {
     override fun onPressedPriority(): Boolean {
         if (!WireDesigner.canToggleWireDesigner()) return false
-        return WireDesigner.toggleWireDesigner()
+        WireDesigner.toggleWireDesigner()
+        return true
     }
 }

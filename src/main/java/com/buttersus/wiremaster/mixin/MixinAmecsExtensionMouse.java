@@ -20,10 +20,10 @@ public abstract class MixinAmecsExtensionMouse {
         KeyBindings keyBindings = KeyBindings.INSTANCE;
         MovementControlKeyBinding movementControlKeyBinding = keyBindings.getMOVEMENT_CONTROL();
 
-        // Pick block override
-        if (mc.options.pickItemKey.matchesMouse(button) && action == 1 && movementControlKeyBinding.isUnbound()) {
+        // Use key override
+        if (mc.options.useKey.matchesMouse(button) && action == 1 && movementControlKeyBinding.isUnbound()) {
             if (movementControlKeyBinding.onPressedPriority()) ci.cancel();
-        } else if (mc.options.pickItemKey.matchesMouse(button) && action == 0 && movementControlKeyBinding.isUnbound()) {
+        } else if (mc.options.useKey.matchesMouse(button) && action == 0 && movementControlKeyBinding.isUnbound()) {
             if (movementControlKeyBinding.onReleasedPriority()) ci.cancel();
         }
     }
