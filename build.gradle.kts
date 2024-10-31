@@ -13,6 +13,7 @@ repositories {
     maven("https://maven.siphalor.de/")  // Amecs API
     maven("https://maven.terraformersmc.com/")  // Mod Menu
     maven("https://maven.isxander.dev/releases/")  // Yet Another Config Lib
+    maven("https://jitpack.io")  // Cached Property Kotlin
 }
 
 dependencies {
@@ -25,6 +26,7 @@ dependencies {
     modApi("de.siphalor:amecsapi-$amecs_api_minecraft_version:${property("amecs_api_version")}")
     modImplementation("com.terraformersmc:modmenu:${property("mod_menu_version")}")
     modApi("dev.isxander:yet-another-config-lib:${property("yet_another_config_lib_version")}")
+    implementation("com.github.yamamotoj:cached-property-kotlin:${property("cached_property_kotlin_version")}")
 }
 
 tasks {

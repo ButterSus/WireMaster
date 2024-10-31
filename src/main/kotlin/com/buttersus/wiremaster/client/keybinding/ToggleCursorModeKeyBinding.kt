@@ -1,7 +1,8 @@
-package com.buttersus.wiremaster.client.input
+package com.buttersus.wiremaster.client.keybinding
 
 import com.buttersus.wiremaster.WireMaster
-import com.buttersus.wiremaster.client.camera.WireDesigner
+import com.buttersus.wiremaster.client.designer.Designer
+import com.buttersus.wiremaster.client.designer.DesignerPermissions
 import de.siphalor.amecs.api.AmecsKeyBinding
 import de.siphalor.amecs.api.KeyModifiers
 import de.siphalor.amecs.api.PriorityKeyBinding
@@ -18,7 +19,8 @@ class ToggleCursorModeKeyBinding : AmecsKeyBinding(
     KeyModifiers()
 ), PriorityKeyBinding {
     override fun onPressedPriority(): Boolean {
-        if (!WireDesigner.canToggleCursorMode()) return false
-        return WireDesigner.toggleCursorMode()
+        if (!DesignerPermissions.canToggleCursor()) return false
+        Designer.cursorController.toggle()
+        return true
     }
 }

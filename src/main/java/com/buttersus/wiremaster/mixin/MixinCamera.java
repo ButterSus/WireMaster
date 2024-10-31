@@ -1,9 +1,10 @@
 package com.buttersus.wiremaster.mixin;
 
-import com.buttersus.wiremaster.client.camera.WireDesigner;
+import com.buttersus.wiremaster.client.designer.Designer;
 import net.minecraft.client.render.Camera;
 import net.minecraft.entity.Entity;
 import net.minecraft.world.BlockView;
+import org.joml.Vector3d;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
@@ -20,10 +21,15 @@ public abstract class MixinCamera {
 
     @Inject(at = @At("TAIL"), method = "update(Lnet/minecraft/world/BlockView;Lnet/minecraft/entity/Entity;ZZF)V")
     private void onUpdate(BlockView area, Entity focusedEntity, boolean thirdPerson, boolean inverseView, float tickDelta, CallbackInfo info) {
-        WireDesigner wireDesigner = WireDesigner.INSTANCE;
-        if (wireDesigner.isActive()) {
-            setRotation((float) wireDesigner.getYRot(), (float) wireDesigner.getXRot());
-            setPos(wireDesigner.getX(), wireDesigner.getY(), wireDesigner.getZ());
+        if (Designer.cameraController.isActive()) {
+            // Get fields
+            Vector3d position = Designer.cameraController.getPosition();
+            float yaw = Designer.cameraController.getYaw();
+            float pitch = Designer.cameraController.getPitch();
+
+            // Set new values
+            setRotation(yaw, pitch);
+            setPos(position.x, position.y, position.z);
         }
     }
 }

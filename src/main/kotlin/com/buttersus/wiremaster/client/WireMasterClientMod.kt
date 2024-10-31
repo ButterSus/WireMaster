@@ -1,7 +1,7 @@
 package com.buttersus.wiremaster.client
 
-import com.buttersus.wiremaster.client.camera.WireDesigner
-import com.buttersus.wiremaster.client.input.KeyBindings
+import com.buttersus.wiremaster.client.designer.Designer
+import com.buttersus.wiremaster.client.keybinding.KeyBindingController
 import com.buttersus.wiremaster.client.render.HudModeOverlay
 import com.buttersus.wiremaster.client.render.HudTestOverlay
 import com.buttersus.wiremaster.config.WireMasterConfig
@@ -13,9 +13,14 @@ import net.fabricmc.fabric.api.client.rendering.v1.HudRenderCallback
 @Environment(EnvType.CLIENT)
 object WireMasterClientMod : ClientModInitializer {
     override fun onInitializeClient() {
+        // Load config
         WireMasterConfig.load()
-        KeyBindings.init()
-        WireDesigner.init()
+
+        // Initialize submodules
+        KeyBindingController.init()
+        Designer.init()
+
+        // HUD callbacks
         HudRenderCallback.EVENT.register(HudModeOverlay)
         HudRenderCallback.EVENT.register(HudTestOverlay)
     }

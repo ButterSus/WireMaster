@@ -1,7 +1,7 @@
 package com.buttersus.wiremaster.mixin;
 
 import com.buttersus.wiremaster.WireMaster;
-import com.buttersus.wiremaster.client.camera.WireDesigner;
+import com.buttersus.wiremaster.client.designer.Designer;
 import net.minecraft.client.network.ClientPlayerInteractionManager;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
@@ -12,6 +12,6 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 public abstract class MixinClientPlayerInteractionManager {
     @Inject(method = "getReachDistance", at = @At("HEAD"), cancellable = true)
     private void onGetReachDistance(CallbackInfoReturnable<Float> cir) {
-        if (WireDesigner.INSTANCE.isCursorMode()) cir.setReturnValue((float) WireMaster.INSTANCE.getREACH_DISTANCE());
+        if (Designer.cursorController.isActive()) cir.setReturnValue((float) WireMaster.REACH_DISTANCE);
     }
 }

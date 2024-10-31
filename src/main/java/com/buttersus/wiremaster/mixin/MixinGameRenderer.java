@@ -1,6 +1,7 @@
 package com.buttersus.wiremaster.mixin;
 
-import com.buttersus.wiremaster.client.camera.WireDesigner;
+import com.buttersus.wiremaster.client.designer.Designer;
+import com.buttersus.wiremaster.client.event.GameRendererTickEvents;
 import com.llamalad7.mixinextras.sugar.Local;
 import com.llamalad7.mixinextras.sugar.ref.LocalRef;
 import net.minecraft.client.option.Perspective;
@@ -19,24 +20,34 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 @Mixin(GameRenderer.class)
 public abstract class MixinGameRenderer {
-    @Inject(at = @At("HEAD"), method = "render(FJZ)V")
-    private void onRender(float tickDelta, long startTime, boolean tick, CallbackInfo ci) {
-        WireDesigner.INSTANCE.onRenderTickStart();
+    @Inject(at = @At("HEAD"), method = "render")
+    private void onRenderStart(float tickDelta, long startTime, boolean tick, CallbackInfo ci) {
+        GameRendererTickEvents.START_RENDER_TICK.invoker().onStartRenderTick(tickDelta, startTime, tick);
+        if (GameRendererTickEvents.isValidFrameTime()) {
+            double frameTime = GameRendererTickEvents.getFrameTime();
+            GameRendererTickEvents.START_RENDER_WITH_FRAME_TIME_TICK.invoker().onStartRenderWithFrameTimeTick(tickDelta, startTime, tick, frameTime);
+        }
+        GameRendererTickEvents.updateFrameTime();
+    }
+
+    @Inject(at = @At("TAIL"), method = "render")
+    private void onRenderEnd(float tickDelta, long startTime, boolean tick, CallbackInfo ci) {
+        GameRendererTickEvents.END_RENDER_TICK.invoker().onEndRenderTick(tickDelta, startTime, tick);
     }
 
     @Inject(at = @At("HEAD"), method = "updateTargetedEntity(F)V")
     private void onBeforeUpdateTargetedEntity(float tickDelta, CallbackInfo info) {
-        WireDesigner.INSTANCE.onBeforeGameRendererPick();
+        Designer.cameraController.setGameRendererPicking(true);
     }
 
     @Inject(at = @At("TAIL"), method = "updateTargetedEntity(F)V")
     private void onAfterUpdateTargetedEntity(float tickDelta, CallbackInfo info) {
-        WireDesigner.INSTANCE.onAfterGameRendererPick();
+        Designer.cameraController.setGameRendererPicking(false);
     }
 
     @Redirect(method = "renderHand(Lnet/minecraft/client/util/math/MatrixStack;Lnet/minecraft/client/render/Camera;F)V", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/option/Perspective;isFirstPerson()Z", ordinal = 0))
     private boolean onRenderItemInHandIsFirstPerson(Perspective cameraType) {
-        return WireDesigner.INSTANCE.onRenderItemInHandIsFirstPerson(cameraType);
+        return Designer.rendererController.onRenderItemInHandShouldOverrideIsFirstPerson(cameraType);
     }
 
     @Unique
@@ -46,7 +57,7 @@ public abstract class MixinGameRenderer {
 
     @Inject(method = "shouldRenderBlockOutline", at = @At(value = "INVOKE", target = "Lnet/minecraft/entity/player/PlayerEntity;getAbilities()Lnet/minecraft/entity/player/PlayerAbilities;"))
     private void beforeShouldRenderBlockOutlineCondition(CallbackInfoReturnable<Boolean> cir, @Local Entity entityLocalRef) {
-        if (WireDesigner.INSTANCE.isCursorMode()) {
+        if (Designer.rendererController.shouldOverrideRenderBlockOutline()) {
             playerAbilitiesBuffer = ((PlayerEntity) entityLocalRef).getAbilities();
             oldAllowModifyWorld = playerAbilitiesBuffer.allowModifyWorld;
             playerAbilitiesBuffer.allowModifyWorld = false;
@@ -55,20 +66,20 @@ public abstract class MixinGameRenderer {
 
     @Inject(method = "shouldRenderBlockOutline", at = @At(value = "INVOKE", target = "Lnet/minecraft/entity/player/PlayerEntity;getAbilities()Lnet/minecraft/entity/player/PlayerAbilities;", shift = At.Shift.AFTER))
     private void afterShouldRenderBlockOutlineCondition(CallbackInfoReturnable<Boolean> cir) {
-        if (WireDesigner.INSTANCE.isCursorMode()) {
+        if (Designer.rendererController.shouldOverrideRenderBlockOutline()) {
             playerAbilitiesBuffer.allowModifyWorld = oldAllowModifyWorld;
         }
     }
 
     @Inject(method = "shouldRenderBlockOutline", at = @At(value = "INVOKE", target = "Lnet/minecraft/util/hit/HitResult;getType()Lnet/minecraft/util/hit/HitResult$Type;"))
     private void changeHitResult(CallbackInfoReturnable<Boolean> cir, @Local LocalRef<HitResult> hitResultLocalRef) {
-        HitResult hitResult = WireDesigner.INSTANCE.getMouseTargetedHitResult();
+        HitResult hitResult = Designer.cursorController.getHoverHitResult();
         if (hitResult != null) hitResultLocalRef.set(hitResult);
     }
 
     @Redirect(method = "updateTargetedEntity", at = @At(value = "INVOKE", target = "Lnet/minecraft/entity/Entity;raycast(DFZ)Lnet/minecraft/util/hit/HitResult;"))
     private HitResult onRaycast(Entity instance, double maxDistance, float tickDelta, boolean includeFluids) {
-        HitResult hitResult = WireDesigner.INSTANCE.getMouseTargetedHitResult();
+        HitResult hitResult = Designer.cursorController.getHoverHitResult();
         if (hitResult != null) return hitResult;
         else return instance.raycast(maxDistance, tickDelta, includeFluids);
     }

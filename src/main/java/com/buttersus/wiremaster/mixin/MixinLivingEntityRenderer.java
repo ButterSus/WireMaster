@@ -1,7 +1,7 @@
 package com.buttersus.wiremaster.mixin;
 
 import com.buttersus.wiremaster.WireMaster;
-import com.buttersus.wiremaster.client.camera.WireDesigner;
+import com.buttersus.wiremaster.client.designer.Designer;
 import com.llamalad7.mixinextras.sugar.Local;
 import com.llamalad7.mixinextras.sugar.ref.LocalBooleanRef;
 import net.minecraft.client.render.VertexConsumerProvider;
@@ -17,6 +17,6 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 public abstract class MixinLivingEntityRenderer<T extends LivingEntity> {
     @Inject(method = "render(Lnet/minecraft/entity/LivingEntity;FFLnet/minecraft/client/util/math/MatrixStack;Lnet/minecraft/client/render/VertexConsumerProvider;I)V", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/render/entity/LivingEntityRenderer;getRenderLayer(Lnet/minecraft/entity/LivingEntity;ZZZ)Lnet/minecraft/client/render/RenderLayer;"))
     private void onTranslucent(T livingEntity, float f, float g, MatrixStack matrixStack, VertexConsumerProvider vertexConsumerProvider, int i, CallbackInfo ci, @Local(ordinal = 1) LocalBooleanRef localBooleanRef) {
-        localBooleanRef.set(localBooleanRef.get() || WireMaster.INSTANCE.getTRANSPARENT_PLAYERS() && WireDesigner.INSTANCE.isActive());
+        localBooleanRef.set(localBooleanRef.get() || WireMaster.TRANSPARENT_PLAYERS && Designer.cameraController.isActive());
     }
 }

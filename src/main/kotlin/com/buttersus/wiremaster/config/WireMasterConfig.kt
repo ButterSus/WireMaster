@@ -1,7 +1,7 @@
 package com.buttersus.wiremaster.config
 
 import com.buttersus.wiremaster.WireMaster
-import com.buttersus.wiremaster.client.camera.CameraMovementType
+import com.buttersus.wiremaster.client.designer.CameraMovementType
 import dev.isxander.yacl.api.ConfigCategory
 import dev.isxander.yacl.api.Option
 import dev.isxander.yacl.api.YetAnotherConfigLib
@@ -73,9 +73,14 @@ object WireMasterConfig {
             properties.getProperty(SLOWDOWN_KEY, "0.01").let(String::toDouble)
         WireMaster.REACH_DISTANCE =
             properties.getProperty(REACH_DISTANCE_KEY, "512.0").let(String::toDouble)
+
+        WireMaster.rebuildDependentCaches()
     }
 
     // Mod menu options screen
+    private fun <T : Any> setterWrapper(setter: (T) -> Unit) =
+        { value: T -> setter(value); WireMaster.rebuildDependentCaches() }
+
     fun createGui(parent: Screen?): Screen =
         YetAnotherConfigLib.createBuilder()
             .title(Text.translatable("config.${WireMaster.MOD_ID}.title"))
@@ -90,7 +95,7 @@ object WireMasterConfig {
                             .binding(
                                 CameraMovementType.NORMAL,
                                 { WireMaster.MOVEMENT_TYPE },
-                                { WireMaster.MOVEMENT_TYPE = it }
+                                setterWrapper { WireMaster.MOVEMENT_TYPE = it }
                             )
                             .controller(::EnumController)
                             .build(),
@@ -102,7 +107,7 @@ object WireMasterConfig {
                             .binding(
                                 false,
                                 { WireMaster.EXPERIMENTAL_ORTHOGRAPHIC },
-                                { WireMaster.EXPERIMENTAL_ORTHOGRAPHIC = it }
+                                setterWrapper { WireMaster.EXPERIMENTAL_ORTHOGRAPHIC = it }
                             )
                             .controller(::BooleanController)
                             .build()
@@ -114,7 +119,7 @@ object WireMasterConfig {
                             .binding(
                                 false,
                                 { WireMaster.TRANSPARENT_PLAYERS },
-                                { WireMaster.TRANSPARENT_PLAYERS = it }
+                                setterWrapper { WireMaster.TRANSPARENT_PLAYERS = it }
                             )
                             .controller(::BooleanController)
                             .build()
@@ -126,7 +131,7 @@ object WireMasterConfig {
                             .binding(
                                 true,
                                 { WireMaster.COUNTER_STRAFING },
-                                { WireMaster.COUNTER_STRAFING = it }
+                                setterWrapper { WireMaster.COUNTER_STRAFING = it }
                             )
                             .controller(::BooleanController)
                             .build()
@@ -138,7 +143,7 @@ object WireMasterConfig {
                             .binding(
                                 25.0,
                                 { WireMaster.MAX_SPEED },
-                                { WireMaster.MAX_SPEED = it }
+                                setterWrapper { WireMaster.MAX_SPEED = it }
                             )
                             .controller { option -> DoubleSliderController(option, 1.0, 50.0, 1.0) }
                             .build()
@@ -150,7 +155,7 @@ object WireMasterConfig {
                             .binding(
                                 40.0,
                                 { WireMaster.ACCELERATION },
-                                { WireMaster.ACCELERATION = it }
+                                setterWrapper { WireMaster.ACCELERATION = it }
                             )
                             .controller { option -> DoubleSliderController(option, 1.0, 100.0, 1.0) }
                             .build()
@@ -162,7 +167,7 @@ object WireMasterConfig {
                             .binding(
                                 0.01,
                                 { WireMaster.SLOWDOWN },
-                                { WireMaster.SLOWDOWN = it }
+                                setterWrapper { WireMaster.SLOWDOWN = it }
                             )
                             .controller { option -> DoubleSliderController(option, 0.00, 1.0, 0.01) }
                             .build()
@@ -174,7 +179,7 @@ object WireMasterConfig {
                             .binding(
                                 512.0,
                                 { WireMaster.REACH_DISTANCE },
-                                { WireMaster.REACH_DISTANCE = it }
+                                setterWrapper { WireMaster.REACH_DISTANCE = it }
                             )
                             .controller { option -> DoubleSliderController(option, 0.0, 1024.0, 1.0) }
                             .build()
@@ -186,15 +191,7 @@ object WireMasterConfig {
             .generateScreen(parent)
 
     // Config menu
-    fun toggleConfigMenu(): Boolean {
-        if (mc.currentScreen == null) {
-            mc.setScreen(createGui(mc.currentScreen))
-            return true
-        }
-        return false
+    fun toggleConfigMenu() {
+        mc.setScreen(createGui(mc.currentScreen))
     }
-
-    // Other methods
-    fun canToggleConfigMenu() =
-        mc.currentScreen == null && mc.world != null && mc.player != null  // Not in a GUI
 }

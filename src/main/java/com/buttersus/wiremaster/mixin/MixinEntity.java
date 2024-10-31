@@ -1,6 +1,7 @@
 package com.buttersus.wiremaster.mixin;
 
-import com.buttersus.wiremaster.client.camera.WireDesigner;
+import com.buttersus.wiremaster.client.designer.Designer;
+import com.buttersus.wiremaster.util.VectorMathUtils;
 import net.minecraft.entity.Entity;
 import net.minecraft.util.math.Vec3d;
 import org.spongepowered.asm.mixin.Mixin;
@@ -16,20 +17,18 @@ public abstract class MixinEntity {
 
     @Inject(method = "getCameraPosVec(F)Lnet/minecraft/util/math/Vec3d;", at = @At("HEAD"), cancellable = true)
     private void onGetCameraPosVec(float tickDelta, CallbackInfoReturnable<Vec3d> cir) {
-        WireDesigner wireDesigner = WireDesigner.INSTANCE;
-        if (wireDesigner.shouldOverrideCameraEntityPosition((Entity) (Object) this)) {
-            cir.setReturnValue(wireDesigner.getVec3dPos());
+        if (Designer.cameraController.shouldOverrideCameraEntityPosition((Entity) (Object) this)) {
+            cir.setReturnValue(VectorMathUtils.toVec3d(Designer.cameraController.getPosition()));
         }
     }
 
     @Inject(method = "getRotationVec(F)Lnet/minecraft/util/math/Vec3d;", at = @At("HEAD"), cancellable = true)
     private void onGetRotationVec(float p_20253_, CallbackInfoReturnable<Vec3d> cir) {
-        WireDesigner wireDesigner = WireDesigner.INSTANCE;
-        if (wireDesigner.shouldOverrideCameraEntityPosition((Entity) (Object) this)) {
-            if (wireDesigner.isCursorMode())
-                cir.setReturnValue(wireDesigner.getCursorVector(wireDesigner.getMouseVector()));
+        if (Designer.cameraController.shouldOverrideCameraEntityPosition((Entity) (Object) this)) {
+            if (Designer.cursorController.isActive())
+                cir.setReturnValue(VectorMathUtils.toVec3d(Designer.cursorCalculator.calculateViewDirectionFromMouse()));
             else
-                cir.setReturnValue(this.getRotationVector((float) wireDesigner.getXRot(), (float) wireDesigner.getYRot()));
+                cir.setReturnValue(this.getRotationVector(Designer.cameraController.getPitch(), Designer.cameraController.getYaw()));
         }
     }
 }

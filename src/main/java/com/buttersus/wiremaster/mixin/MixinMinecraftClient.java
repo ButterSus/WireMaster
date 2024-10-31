@@ -1,6 +1,6 @@
 package com.buttersus.wiremaster.mixin;
 
-import com.buttersus.wiremaster.client.camera.WireDesigner;
+import com.buttersus.wiremaster.client.event.MinecraftClientEvents;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.screen.DownloadingTerrainScreen;
 import net.minecraft.client.gui.screen.ProgressScreen;
@@ -23,36 +23,33 @@ public abstract class MixinMinecraftClient {
 
     @Inject(at = @At("HEAD"), method = "joinWorld(Lnet/minecraft/client/world/ClientWorld;)V")
     private void onBeforeJoinWorld(ClientWorld world, CallbackInfo ci) {
-        if (world != null) WireDesigner.INSTANCE.onWorldUnload();
+        MinecraftClientEvents.WORLD_LOAD.invoker().onWorldLoad(world);
     }
 
     @Inject(at = @At("HEAD"), method = "disconnect(Lnet/minecraft/client/gui/screen/Screen;)V")
     private void onBeforeDisconnect(Screen screen, CallbackInfo ci) {
-        MinecraftClient mc = (MinecraftClient) (Object) this;
-        if (mc.world != null) WireDesigner.INSTANCE.onWorldUnload();
+        MinecraftClientEvents.WORLD_UNLOAD.invoker().onWorldUnload(screen);
     }
 
     @Inject(at = @At("HEAD"), method = "setScreen")
     private void onSetScreenChange(Screen screen, CallbackInfo ci) {
         MinecraftClient client = (MinecraftClient) (Object) this;
-        Set<Class<? extends Screen>> screens = Set.of(
+        Set<Class<? extends Screen>> forbiddenScreens = Set.of(
                 ProgressScreen.class,
                 DownloadingTerrainScreen.class
         );
 
         boolean isInGame = client.world != null
-                && (screen == null || !screens.contains(screen.getClass()))
-                && (client.currentScreen == null || !screens.contains(client.currentScreen.getClass()));
+                && (screen == null || !forbiddenScreens.contains(screen.getClass()))
+                && (client.currentScreen == null || !forbiddenScreens.contains(client.currentScreen.getClass()));
 
         if (currentScreen != null) {
-//            onClose(currentScreen, isInGame, screenLevel);
-            if (screenLevel == 1 && isInGame) WireDesigner.INSTANCE.onScreenClose();
+            MinecraftClientEvents.SCREEN_CLOSE.invoker().onScreenClose(currentScreen, isInGame, screenLevel);
             screenLevel = Math.max(0, screenLevel - 1);
         }
 
         if (screen != null) {
-//            onOpen(screen, isInGame, screenLevel);
-            if (screenLevel == 0 && isInGame) WireDesigner.INSTANCE.onScreenOpen();
+            MinecraftClientEvents.SCREEN_OPEN.invoker().onScreenOpen(screen, isInGame, screenLevel);
             screenLevel++;
         } else {
             screenLevel = 0;

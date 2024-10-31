@@ -1,4 +1,4 @@
-package com.buttersus.wiremaster.client.camera.interpolation
+package com.buttersus.wiremaster.util.interpolation
 
 import net.fabricmc.api.EnvType
 import net.fabricmc.api.Environment

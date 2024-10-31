@@ -1,7 +1,10 @@
 package com.buttersus.wiremaster.client.render
 
+import net.fabricmc.api.EnvType
+import net.fabricmc.api.Environment
 import net.minecraft.util.Formatting
 
+@Environment(EnvType.CLIENT)
 @Suppress("unused")
 object Colors {
     val AQUA = Formatting.AQUA

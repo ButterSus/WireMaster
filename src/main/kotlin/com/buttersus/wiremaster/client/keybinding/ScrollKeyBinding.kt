@@ -1,7 +1,8 @@
-package com.buttersus.wiremaster.client.input
+package com.buttersus.wiremaster.client.keybinding
 
 import com.buttersus.wiremaster.WireMaster
-import com.buttersus.wiremaster.client.camera.WireDesigner
+import com.buttersus.wiremaster.client.designer.DesignerPermissions
+import com.buttersus.wiremaster.client.event.MouseEvents
 import de.siphalor.amecs.api.AmecsKeyBinding
 import de.siphalor.amecs.api.KeyModifiers
 import de.siphalor.amecs.api.PriorityKeyBinding
@@ -21,7 +22,8 @@ class ScrollKeyBinding(
     KeyModifiers()
 ), PriorityKeyBinding {
     override fun onPressedPriority(): Boolean {
-        if (!WireDesigner.canScroll()) return false
-        return WireDesigner.onMouseScroll(scrollY)
+        if (!DesignerPermissions.canScroll()) return false
+        MouseEvents.MOUSE_SCROLL_Y.invoker().onScrollY(scrollY)
+        return true
     }
 }

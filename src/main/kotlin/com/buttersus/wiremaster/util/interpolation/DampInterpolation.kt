@@ -1,4 +1,4 @@
-package com.buttersus.wiremaster.client.camera.interpolation
+package com.buttersus.wiremaster.util.interpolation
 
 import net.fabricmc.api.EnvType
 import net.fabricmc.api.Environment
@@ -20,17 +20,17 @@ abstract class DampInterpolation(
     }
 
     // Displacement getters & setters
-    fun reset() {
+    fun resetVector() {
         displacement.set(0.0, 0.0, 0.0)
     }
 
-    fun set(displacement: Vector3d) {
+    fun setVector(displacement: Vector3d) {
         this.displacement.set(displacement)
     }
 
-    fun add(displacement: Vector3d) {
+    fun addVector(displacement: Vector3d) {
         this.displacement.add(displacement)
     }
 
-    fun get() = displacement
+    fun getVector() = displacement
 }

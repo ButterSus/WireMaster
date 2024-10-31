@@ -1,10 +1,13 @@
 package com.buttersus.wiremaster.client.render
 
+import net.fabricmc.api.EnvType
+import net.fabricmc.api.Environment
 import net.fabricmc.fabric.api.client.rendering.v1.HudRenderCallback
 import net.minecraft.client.MinecraftClient
 import net.minecraft.client.gui.DrawableHelper
 import net.minecraft.client.util.math.MatrixStack
 
+@Environment(EnvType.CLIENT)
 object HudTestOverlay : HudRenderCallback {
     private val mc = MinecraftClient.getInstance()
 

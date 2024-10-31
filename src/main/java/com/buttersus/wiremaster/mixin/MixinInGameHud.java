@@ -1,6 +1,6 @@
 package com.buttersus.wiremaster.mixin;
 
-import com.buttersus.wiremaster.client.camera.WireDesigner;
+import com.buttersus.wiremaster.client.designer.Designer;
 import net.minecraft.client.gui.hud.InGameHud;
 import net.minecraft.client.option.Perspective;
 import net.minecraft.client.util.math.MatrixStack;
@@ -14,12 +14,12 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 public abstract class MixinInGameHud {
     @Redirect(method = "renderCrosshair", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/option/Perspective;isFirstPerson()Z"))
     private boolean onRenderCrosshairIsFirstPerson(Perspective cameraType) {
-        return WireDesigner.INSTANCE.onRenderCrosshairIsFirstPerson(cameraType);
+        return Designer.rendererController.onRenderCrosshairShouldOverrideIsFirstPerson(cameraType);
     }
 
     @Inject(method = "renderCrosshair", at = @At(value = "HEAD"), cancellable = true)
     private void onRenderCrosshair(MatrixStack matrices, CallbackInfo ci) {
-        if (WireDesigner.INSTANCE.isCursorMode()) ci.cancel();
+        if (!Designer.rendererController.shouldHideCrosshair()) ci.cancel();
     }
 }
 

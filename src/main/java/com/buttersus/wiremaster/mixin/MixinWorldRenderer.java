@@ -1,6 +1,7 @@
 package com.buttersus.wiremaster.mixin;
 
-import com.buttersus.wiremaster.client.camera.WireDesigner;
+import com.buttersus.wiremaster.client.designer.Designer;
+import com.buttersus.wiremaster.util.VectorMathUtils;
 import com.llamalad7.mixinextras.sugar.Local;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.ShapeContext;
@@ -43,7 +44,7 @@ public abstract class MixinWorldRenderer {
 
     @ModifyArg(method = "render", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/render/WorldRenderer;setupTerrain(Lnet/minecraft/client/render/Camera;Lnet/minecraft/client/render/Frustum;ZZ)V"), index = 3)
     private boolean onCallSetupRender(boolean isSpectator) {
-        if (WireDesigner.INSTANCE.isActive()) {
+        if (Designer.cameraController.isActive()) {
             return true;
         } else {
             return isSpectator;
@@ -52,8 +53,7 @@ public abstract class MixinWorldRenderer {
 
     @ModifyVariable(method = "render", at = @At(value = "FIELD", target = "Lnet/minecraft/client/MinecraftClient;crosshairTarget:Lnet/minecraft/util/hit/HitResult;", ordinal = 1), ordinal = 0, argsOnly = true)
     private boolean changeRenderBlockOutline(boolean renderBlockOutline) {
-        WireDesigner wd = WireDesigner.INSTANCE;
-        return wd.getMouseTargetedHitResult() == null && renderBlockOutline;
+        return Designer.cursorController.getHoverHitResult() == null && renderBlockOutline;
     }
 
     @Inject(method = "render", at = @At(value = "FIELD", target = "Lnet/minecraft/client/MinecraftClient;crosshairTarget:Lnet/minecraft/util/hit/HitResult;", ordinal = 1))
@@ -61,8 +61,7 @@ public abstract class MixinWorldRenderer {
             MatrixStack matrices, float tickDelta, long limitTime, boolean renderBlockOutline, Camera camera, GameRenderer gameRenderer, LightmapTextureManager lightmapTextureManager, Matrix4f positionMatrix, CallbackInfo ci,
             @Local VertexConsumerProvider.Immediate immediate
     ) {
-        WireDesigner wd = WireDesigner.INSTANCE;
-        HitResult hitResult = wd.getMouseTargetedHitResult();
+        HitResult hitResult = Designer.cursorController.getHoverHitResult();
         if (this.chunks == null || hitResult == null || this.world == null) return;
 
         // Get block pos && camera pos
@@ -70,7 +69,7 @@ public abstract class MixinWorldRenderer {
         BlockHitResult blockHitResult = (BlockHitResult) hitResult;
         BlockPos blockPos = blockHitResult.getBlockPos();
         BlockState blockState = this.world.getBlockState(blockPos);
-        Vec3d cameraPos = wd.getVec3dPos();
+        Vec3d cameraPos = VectorMathUtils.toVec3d(Designer.cameraController.getPosition());
 
         // Check if block is withing render distance
         ChunkBuilder.BuiltChunk builtChunk = ((BuiltChunkStorageInvoker) chunks).invokeGetRenderedChunk(blockPos);
